@@ -3,6 +3,7 @@
 **Kandidat:** Al Fitra Nur Ramadhani  
 **Posisi:** Data Analyst  
 **Periode Data:** Q4 2022 (Oktober – Desember 2022) | Cabang 1 – 4  
+**Live Web Dashboard:** [https://kosmetika-klinik-data-analyst.vercel.app](https://kosmetika-klinik-data-analyst.vercel.app/)  
 **Target Deliverables:** Interactive Web Dashboard & Patient Data Migration  
 
 ---
@@ -16,10 +17,10 @@ Al_Fitra_Nur_Ramadhani/
 ├── 01_profiling_and_analysis.sql   # SQL Profiling, Performa Bisnis, Segmentasi, Produk/Treatment/Dokter, & Analisis Cabang
 ├── 02_patient_migration.sql        # Script SQL Stored Procedure Migrasi Pasien (Idempotent, Normalisasi, Logging & Konflik)
 ├── 03_migration_validation.sql     # SQL Validasi, Audit Rekonsiliasi, & Uji Idempotensi
-├── dashboard/                      # Web Dashboard Interaktif (React + Tailwind + Recharts)
+├── dashboard/                      # Web Dashboard Interaktif (Deployed: https://kosmetika-klinik-data-analyst.vercel.app)
 │   ├── package.json
 │   ├── src/
-│   │   ├── App.jsx                 # UI Dashboard Interaktif
+│   │   ├── App.jsx                 # UI Dashboard Interaktif (React + Tailwind + Recharts)
 │   │   ├── data/clinicData.json    # Dataset Q4 2022 Parsed Real Metrics
 │   │   └── ...
 │   └── dist/                       # Production Web Bundle
