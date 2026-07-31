@@ -110,27 +110,42 @@ Total Revenue Q4: **Rp 24,33 Miliar** | Total Invoice: **50.856 Invoice** | Pasi
 
 ---
 
-### 2. Segmentasi Customer & Perilaku Belanja
+### 2. Segmentasi Customer & Perilaku Belanja (Bagian C)
 
 - **Repeat Customer:** Menyumbangkan **66,35% revenue (Rp 16,15 M)** dari 31.044 invoice (ATV Rp 520.117).
 - **Reactivated Customer:** Menyumbangkan **13,13% revenue (Rp 3,20 M)** dari 5.156 invoice (ATV Rp 619.836).
 - **New Customer:** Menyumbangkan **12,87% revenue (Rp 3,13 M)** dari 4.176 pasien baru dengan **ATV tertinggi (Rp 749.905)**.
 - **Non Member:** Menyumbangkan **7,64% revenue (Rp 1,86 M)** dari 10.480 invoice dengan **ATV terendah (Rp 177.482)**.
+- **Rincian Per Bulan & Cabang:** Tersedia tabel breakdown lengkap 48 baris data per bulan dan per cabang di Tab 2 dashboard interaktif.
 
 ---
 
-### 3. Top Treatment, Top Produk, & Tipe Transaksi
+### 3. Top Treatment, Top Produk, Tipe Transaksi & Performa Dokter (Bagian D)
 
 - **Hero Treatment (#1):** `SKIN BOOSTER 3 IN 1 1CC` (**Rp 609,93 Jt** / 385 transaksi).
 - **Hero Skincare (#1):** `WHITENING SUN CREAM 3` (**Rp 1,61 Miliar** / 12.948 unit terjual).
-- **Mixed Package Power:** Transaksi *Mixed* (Treatment + Skincare) menghasilkan **ATV Rp 1.432.772** (5x lipat dibanding *Product Only* Rp 276rb).
+- **Komposisi Tipe Transaksi:**
+  - **Product Only (Obat):** 40.290 invoice (79,2% volume) | Rp 11,14 M (45,8% revenue) | ATV Rp 276.567.
+  - **Mixed Package (Campuran):** 7.105 invoice (14,0% volume) | Rp 10,18 M (41,8% revenue) | **ATV Rp 1.432.772** *(5,2x Product Only)*.
+  - **Treatment Only (Medis):** 3.336 invoice (6,6% volume) | Rp 3,00 M (12,3% revenue) | ATV Rp 900.393.
+- **Top Dokter Paling Berkontribusi:**
+  - `Doctor-0015` (Surabaya): Rp 2,47 Miliar / 3.764 transaksi (ATV Rp 655.944).
+  - `Doctor-0004` (Malang) & `Doctor-0031` (Sidoarjo): Rp 2,47 Miliar / 4.246 transaksi.
+  - `Doctor-0025` (Bandung): Rp 2,40 Miliar / 4.328 transaksi.
 
 ---
 
-### 4. Deep-Dive Cabang Prioritas: CABANG SIDOARJO
+### 4. Deep-Dive Cabang Prioritas: CABANG SIDOARJO (Bagian E)
 
-- **Alasan Pemilihan:** Sidoarjo berkinerja terendah dengan kontribusi revenue hanya **14,83% (Rp 3,61 M)**, ATV terendah (**Rp 426.468**), dan porsi transaksi *Mixed* paling rendah (**11,61%**).
-- **Akar Masalah:** Kurangnya efektivitas *cross-selling* treatment ke skincare oleh tim medis, serta tingginya porsi pembeli Non-Member (26,2% invoice) yang belum terkonversi menjadi member terdaftar.
+- **Alasan Pemilihan Cabang:** Sidoarjo berkinerja terendah dengan kontribusi revenue hanya **14,83% (Rp 3,61 M)**, ATV terendah (**Rp 426.468**), dan porsi transaksi *Mixed* paling rendah (**11,61%**).
+- **Tren Bulanan Sidoarjo:** Oktober (Rp 1,09M / ATV Rp 377rb) → November (Rp 1,17M / ATV Rp 456rb) → Desember (Rp 1,35M / ATV Rp 447rb).
+- **Segmentasi Pasien Sidoarjo:**
+  - Repeat Customer: Rp 2,08 M (57,7% revenue) | 4.763 invoice.
+  - Reactivated Customer: Rp 475,47 Jt | 912 invoice.
+  - New Customer: Rp 505,48 Jt | 766 invoice | ATV Rp 659.893.
+  - Non Member: Rp 433,69 Jt (12,0% revenue) | 2.219 invoice (26,2% volume) | **ATV Terendah (Rp 195.442)**.
+- **Dokter Penanggung Jawab Utama Sidoarjo:** Doctor-0031 (Rp 2,47 M), Doctor-0028 (Rp 1,80 M), Doctor-0030 (Rp 1,49 M), dan Doctor-0029 (Rp 1,27 M).
+- **Akar Masalah Kunci:** Kurangnya efektivitas *cross-selling* treatment ke skincare oleh tim medis (Mixed package hanya 11,61%), serta tingginya porsi pembeli Non-Member (26,2% invoice) yang belum terkonversi menjadi member terdaftar.
 
 ---
 
@@ -140,8 +155,8 @@ Total Revenue Q4: **Rp 24,33 Miliar** | Total Invoice: **50.856 Invoice** | Pasi
 
 1. **Konsentrasi Revenue:** Surabaya & Bandung menguasai **63,88% (Rp 15,54 M)** pendapatan total klinik.
 2. **Dominasi Pasien Loyal:** Repeat Customer menyumbang **66,35% (Rp 16,15 M)** total pendapatan.
-3. **Daya Beli Pasien Baru Tinggi:** New Customer memiliki ATV tertinggi (**Rp 749.905**), 42% di atas rata-rata ATV bisnis.
-4. **Potensi Transaksi Mixed:** Transaksi *Mixed* menghasilkan ATV Rp 1.43M (menyumbang 41,83% revenue dari hanya 14.0% volume invoice).
+3. **Daya Beli Pasien Baru Tinggi:** New Customer memiliki ATV tertinggi (**Rp 749.905**), 57% di atas rata-rata ATV bisnis (Rp 478rb).
+4. **Potensi Transaksi Mixed:** Transaksi *Mixed* menghasilkan ATV Rp 1,43 M (menyumbang 41,83% revenue dari hanya 14,0% volume invoice).
 5. **Peluang Konversi Non Member:** 10.480 invoice Non Member (20.6%) memiliki ATV rendah (Rp 177rb) yang siap dikonversi ke membership.
 
 ---

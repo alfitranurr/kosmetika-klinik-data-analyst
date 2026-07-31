@@ -30,6 +30,9 @@ export default function App() {
   // Sorting state for Doctor Performance Table
   const [sortDoc, setSortDoc] = useState({ key: 'rank', direction: 'asc' });
 
+  // Sorting state for Segment Detail Table (Bagian C)
+  const [sortSegmentTable, setSortSegmentTable] = useState({ key: 'revenue', direction: 'desc' });
+
   // Filtered performance rows
   const filteredPerf = useMemo(() => {
     return data.performance.filter(item => {
@@ -100,6 +103,42 @@ export default function App() {
     });
   };
 
+  // Filtered & Sorted Customer Segment Detail Data (Bagian 1C)
+  const sortedSegmentDetail = useMemo(() => {
+    const list = data.segments.filter(item => {
+      if (selectedMonth !== 'ALL' && item.month !== selectedMonth) return false;
+      if (selectedBranch !== 'ALL' && item.branch_name !== selectedBranch) return false;
+      if (selectedSegment !== 'ALL' && item.segment !== selectedSegment) return false;
+      return true;
+    });
+
+    if (!sortSegmentTable.key) return list;
+
+    return [...list].sort((a, b) => {
+      let aVal = a[sortSegmentTable.key];
+      let bVal = b[sortSegmentTable.key];
+      if (sortSegmentTable.key === 'atv') {
+        aVal = a.invoices > 0 ? a.revenue / a.invoices : 0;
+        bVal = b.invoices > 0 ? b.revenue / b.invoices : 0;
+      }
+      if (typeof aVal === 'string') {
+        return sortSegmentTable.direction === 'asc' 
+          ? aVal.localeCompare(bVal) 
+          : bVal.localeCompare(aVal);
+      }
+      return sortSegmentTable.direction === 'asc' ? aVal - bVal : bVal - aVal;
+    });
+  }, [selectedMonth, selectedBranch, selectedSegment, sortSegmentTable]);
+
+  const handleSortSegmentTable = (key) => {
+    setSortSegmentTable(prev => {
+      if (prev.key === key) {
+        return { key, direction: prev.direction === 'asc' ? 'desc' : 'asc' };
+      }
+      return { key, direction: (key === 'month' || key === 'branch_name' || key === 'segment') ? 'asc' : 'desc' };
+    });
+  };
+
   // Aggregate KPI summary
   const kpis = useMemo(() => {
     const totalRev = filteredPerf.reduce((sum, i) => sum + i.revenue, 0);
@@ -108,6 +147,24 @@ export default function App() {
     const atv = totalInvoices > 0 ? totalRev / totalInvoices : 0;
     return { totalRev, totalInvoices, totalPatients, atv };
   }, [filteredPerf, selectedMonth, selectedBranch]);
+
+  // Transaction Types Data with calculated percentages (Bagian 1D)
+  const txTypeData = useMemo(() => {
+    const totalRev = data.tx_types.reduce((s, i) => s + i.revenue, 0);
+    const totalInv = data.tx_types.reduce((s, i) => s + i.invoices, 0);
+    const colors = {
+      'Product Only (Obat)': '#3b82f6', // Blue
+      'Mixed (Campuran)': '#f59e0b',     // Amber / Gold
+      'Treatment Only': '#10b981',       // Emerald
+      'Other': '#64748b'                 // Slate
+    };
+    return data.tx_types.map(item => ({
+      ...item,
+      revPercentage: totalRev > 0 ? ((item.revenue / totalRev) * 100).toFixed(1) : 0,
+      invPercentage: totalInv > 0 ? ((item.invoices / totalInv) * 100).toFixed(1) : 0,
+      fill: colors[item.label] || '#6366f1'
+    }));
+  }, []);
 
   // Format currency IDR
   const formatIDR = (val) => {
@@ -196,6 +253,19 @@ export default function App() {
   const renderSortIcon = (currentSort, colKey) => {
     if (currentSort.key !== colKey) return <ArrowUpDown className="w-3.5 h-3.5 opacity-40 group-hover:opacity-100 transition" />;
     return currentSort.direction === 'asc' ? <ArrowUp className="w-3.5 h-3.5 text-indigo-400 font-bold" /> : <ArrowDown className="w-3.5 h-3.5 text-indigo-400 font-bold" />;
+  };
+
+  // Multi-line tick renderer for segment bar chart to prevent label collision & clear X-axis line
+  const renderSegmentXAxisTick = ({ x, y, payload }) => {
+    const parts = payload.value.split(' ');
+    return (
+      <g transform={`translate(${x},${y})`}>
+        <text x={0} y={0} textAnchor="middle" fill="#ffffff" fontSize={11} fontWeight="bold">
+          <tspan x={0} dy="18">{parts[0]}</tspan>
+          {parts[1] && <tspan x={0} dy="14">{parts[1]}</tspan>}
+        </text>
+      </g>
+    );
   };
 
   return (
@@ -299,72 +369,72 @@ export default function App() {
           </div>
         </section>
 
-        {/* Executive KPI Summary Cards - Perfectly Symmetrical & Horizontal Aligned */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* Executive KPI Summary Cards - Sleek & Compact Alignment */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           
           {/* Card 1: Revenue */}
-          <div className="bg-gradient-to-br from-indigo-950/80 via-slate-900 to-slate-900 border border-indigo-500/30 rounded-2xl p-5 shadow-xl flex flex-col justify-between h-44 group hover:border-indigo-500/60 transition">
+          <div className="bg-gradient-to-br from-indigo-950/80 via-slate-900 to-slate-900 border border-indigo-500/30 rounded-2xl p-4 shadow-xl flex flex-col justify-between h-36 group hover:border-indigo-500/60 transition">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-bold text-indigo-300 tracking-wider uppercase truncate">TOTAL REVENUE (Q4)</p>
-              <div className="p-2.5 bg-indigo-500/20 rounded-xl text-indigo-400 border border-indigo-500/30 shrink-0">
-                <DollarSign className="w-5 h-5" />
+              <p className="text-[11px] font-bold text-indigo-300 tracking-wider uppercase truncate">TOTAL REVENUE (Q4)</p>
+              <div className="p-2 bg-indigo-500/20 rounded-xl text-indigo-400 border border-indigo-500/30 shrink-0">
+                <DollarSign className="w-4 h-4" />
               </div>
             </div>
             <div>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">{formatIDR(kpis.totalRev)}</h3>
+              <h3 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">{formatIDR(kpis.totalRev)}</h3>
             </div>
-            <div className="pt-2 border-t border-slate-800/80 flex items-center gap-1.5 text-xs text-emerald-400 font-semibold truncate">
+            <div className="pt-2 border-t border-slate-800/80 flex items-center gap-1.5 text-[11px] text-emerald-400 font-semibold truncate">
               <TrendingUp className="w-3.5 h-3.5 shrink-0" />
               <span className="truncate">+10.18% Recovery MoM (Des)</span>
             </div>
           </div>
 
           {/* Card 2: Invoices */}
-          <div className="bg-gradient-to-br from-purple-950/80 via-slate-900 to-slate-900 border border-purple-500/30 rounded-2xl p-5 shadow-xl flex flex-col justify-between h-44 group hover:border-purple-500/60 transition">
+          <div className="bg-gradient-to-br from-purple-950/80 via-slate-900 to-slate-900 border border-purple-500/30 rounded-2xl p-4 shadow-xl flex flex-col justify-between h-36 group hover:border-purple-500/60 transition">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-bold text-purple-300 tracking-wider uppercase truncate">TOTAL INVOICE (Q4)</p>
-              <div className="p-2.5 bg-purple-500/20 rounded-xl text-purple-400 border border-purple-500/30 shrink-0">
-                <Receipt className="w-5 h-5" />
+              <p className="text-[11px] font-bold text-purple-300 tracking-wider uppercase truncate">TOTAL INVOICE (Q4)</p>
+              <div className="p-2 bg-purple-500/20 rounded-xl text-purple-400 border border-purple-500/30 shrink-0">
+                <Receipt className="w-4 h-4" />
               </div>
             </div>
             <div>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">{formatNumber(kpis.totalInvoices)}</h3>
+              <h3 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">{formatNumber(kpis.totalInvoices)}</h3>
             </div>
-            <div className="pt-2 border-t border-slate-800/80 flex items-center gap-1.5 text-xs text-slate-400 font-medium truncate">
+            <div className="pt-2 border-t border-slate-800/80 flex items-center gap-1.5 text-[11px] text-slate-400 font-medium truncate">
               <Activity className="w-3.5 h-3.5 shrink-0 text-purple-400" />
               <span className="truncate">Volume Transaksi Terpantau</span>
             </div>
           </div>
 
           {/* Card 3: Patients */}
-          <div className="bg-gradient-to-br from-emerald-950/80 via-slate-900 to-slate-900 border border-emerald-500/30 rounded-2xl p-5 shadow-xl flex flex-col justify-between h-44 group hover:border-emerald-500/60 transition">
+          <div className="bg-gradient-to-br from-emerald-950/80 via-slate-900 to-slate-900 border border-emerald-500/30 rounded-2xl p-4 shadow-xl flex flex-col justify-between h-36 group hover:border-emerald-500/60 transition">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-bold text-emerald-300 tracking-wider uppercase truncate">PASIEN UNIK (Q4)</p>
-              <div className="p-2.5 bg-emerald-500/20 rounded-xl text-emerald-400 border border-emerald-500/30 shrink-0">
-                <Users className="w-5 h-5" />
+              <p className="text-[11px] font-bold text-emerald-300 tracking-wider uppercase truncate">PASIEN UNIK (Q4)</p>
+              <div className="p-2 bg-emerald-500/20 rounded-xl text-emerald-400 border border-emerald-500/30 shrink-0">
+                <Users className="w-4 h-4" />
               </div>
             </div>
             <div>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">{formatNumber(kpis.totalPatients)}</h3>
+              <h3 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">{formatNumber(kpis.totalPatients)}</h3>
             </div>
-            <div className="pt-2 border-t border-slate-800/80 flex items-center gap-1.5 text-xs text-emerald-400 font-semibold truncate">
+            <div className="pt-2 border-t border-slate-800/80 flex items-center gap-1.5 text-[11px] text-emerald-400 font-semibold truncate">
               <UserCheck className="w-3.5 h-3.5 shrink-0" />
               <span className="truncate">Dominasi Repeat (66.4%)</span>
             </div>
           </div>
 
           {/* Card 4: ATV */}
-          <div className="bg-gradient-to-br from-amber-950/80 via-slate-900 to-slate-900 border border-amber-500/30 rounded-2xl p-5 shadow-xl flex flex-col justify-between h-44 group hover:border-amber-500/60 transition">
+          <div className="bg-gradient-to-br from-amber-950/80 via-slate-900 to-slate-900 border border-amber-500/30 rounded-2xl p-4 shadow-xl flex flex-col justify-between h-36 group hover:border-amber-500/60 transition">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-bold text-amber-300 tracking-wider uppercase truncate">RATA-RATA ATV (Q4)</p>
-              <div className="p-2.5 bg-amber-500/20 rounded-xl text-amber-400 border border-amber-500/30 shrink-0">
-                <CreditCard className="w-5 h-5" />
+              <p className="text-[11px] font-bold text-amber-300 tracking-wider uppercase truncate">RATA-RATA ATV (Q4)</p>
+              <div className="p-2 bg-amber-500/20 rounded-xl text-amber-400 border border-amber-500/30 shrink-0">
+                <CreditCard className="w-4 h-4" />
               </div>
             </div>
             <div>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">{formatIDR(kpis.atv)}</h3>
+              <h3 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">{formatIDR(kpis.atv)}</h3>
             </div>
-            <div className="pt-2 border-t border-slate-800/80 flex items-center gap-1.5 text-xs text-amber-400 font-semibold truncate">
+            <div className="pt-2 border-t border-slate-800/80 flex items-center gap-1.5 text-[11px] text-amber-400 font-semibold truncate">
               <Award className="w-3.5 h-3.5 shrink-0" />
               <span className="truncate">Surabaya Top (Rp 524rb)</span>
             </div>
@@ -411,6 +481,18 @@ export default function App() {
           </button>
 
           <button 
+            onClick={() => setActiveTab('tx_types')}
+            className={`px-4 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center gap-2 whitespace-nowrap ${
+              activeTab === 'tx_types' 
+                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/20' 
+                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
+            }`}
+          >
+            <Receipt className="w-4 h-4 text-amber-400" />
+            <span>Komposisi Tipe Transaksi</span>
+          </button>
+
+          <button 
             onClick={() => setActiveTab('doctors')}
             className={`px-4 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center gap-2 whitespace-nowrap ${
               activeTab === 'doctors' 
@@ -419,7 +501,7 @@ export default function App() {
             }`}
           >
             <Stethoscope className="w-4 h-4 text-sky-400" />
-            <span>Performa Dokter & Tipe Tx</span>
+            <span>Performa Dokter</span>
           </button>
 
           <button 
@@ -431,7 +513,7 @@ export default function App() {
             }`}
           >
             <AlertTriangle className="w-4 h-4 text-amber-400" />
-            <span>Deep Dive Sidoarjo (1-E)</span>
+            <span>Deep Dive Cabang Sidoarjo</span>
           </button>
 
           <button 
@@ -443,7 +525,7 @@ export default function App() {
             }`}
           >
             <FileSpreadsheet className="w-4 h-4 text-indigo-400" />
-            <span>Audit Profiling Data (1-A)</span>
+            <span>Audit Profiling Data</span>
           </button>
 
           <button 
@@ -476,12 +558,18 @@ export default function App() {
           <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Monthly Revenue Trend */}
-              <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl">
-                <h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-indigo-400" />
-                  Tren Total Revenue Bulanan (Q4 2022)
-                </h3>
-                <p className="text-xs text-slate-400 mb-6">Pertumbuhan MoM: Oktober (Rp 8.09M) → November (Rp 7.72M) → Desember (Rp 8.51M)</p>
+              <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2 pb-3 border-b border-slate-800/80">
+                    <h3 className="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5 text-indigo-400" />
+                      Tren Revenue Bulanan (Q4 2022)
+                    </h3>
+                    <span className="text-xs bg-indigo-500/20 text-indigo-300 px-2.5 py-1 rounded-full border border-indigo-500/30 font-bold shrink-0">Bulanan</span>
+                  </div>
+                  <p className="text-xs text-slate-400 mb-6 truncate">Pertumbuhan MoM: Oktober (Rp 8.09M) → November (Rp 7.72M) → Desember (Rp 8.51M)</p>
+                </div>
+                
                 <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={monthlyTrendData} margin={{ top: 10, right: 20, left: 15, bottom: 10 }}>
@@ -511,13 +599,19 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Branch Contribution Comparison - Clear Explicit Title */}
-              <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl">
-                <h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
-                  <Award className="w-5 h-5 text-emerald-400" />
-                  Peringkat & Kontribusi Total Revenue Per Cabang (Q4 2022)
-                </h3>
-                <p className="text-xs text-slate-400 mb-6">Peringkat Revenue: Surabaya memimpin Rp 8,94 M (36,7%), Bandung Rp 6,60 M, Malang Rp 5,18 M, & Sidoarjo Rp 3,61 M (14,8%)</p>
+              {/* Branch Contribution Comparison - Symmetrical Title */}
+              <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2 pb-3 border-b border-slate-800/80">
+                    <h3 className="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
+                      <Award className="w-5 h-5 text-emerald-400" />
+                      Kontribusi Revenue Per Cabang
+                    </h3>
+                    <span className="text-xs bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-500/30 font-bold shrink-0">Cabang</span>
+                  </div>
+                  <p className="text-xs text-slate-400 mb-6 truncate">Surabaya Top Rp 8,94M (36.7%), Bandung Rp 6,60M, Malang Rp 5,18M, Sidoarjo Rp 3,61M</p>
+                </div>
+                
                 <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={branchComparisonData} layout="vertical" margin={{ top: 10, right: 30, left: 40, bottom: 10 }}>
@@ -553,8 +647,8 @@ export default function App() {
             {/* Performance Detail Table with Interactive Column Sorting */}
             <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-white">Tabel Detail Performa Per Cabang & Bulan</h3>
-                <span className="text-xs text-indigo-400 font-medium">Klik judul kolom untuk sortir (Sort ▲/▼)</span>
+                <h3 className="text-base sm:text-lg font-extrabold text-white">Tabel Detail Performa Per Cabang & Bulan</h3>
+                <span className="text-xs text-indigo-400 font-semibold">Klik judul kolom untuk sortir (Sort ▲/▼)</span>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm text-slate-300">
@@ -647,7 +741,7 @@ export default function App() {
               {/* Donut Chart with Percentages & Nominal Values */}
               <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl flex flex-col justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
+                  <h3 className="text-base sm:text-lg font-extrabold text-white mb-1 flex items-center gap-2">
                     <PieChart className="w-5 h-5 text-indigo-400" />
                     Kontribusi Revenue Per Kategori Customer
                   </h3>
@@ -712,7 +806,7 @@ export default function App() {
               {/* Bar Chart ATV per Segmen Customer */}
               <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl flex flex-col justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
+                  <h3 className="text-base sm:text-lg font-extrabold text-white mb-1 flex items-center gap-2">
                     <CreditCard className="w-5 h-5 text-purple-400" />
                     Profil ATV (Rata-Rata Belanja) Per Segmen
                   </h3>
@@ -720,14 +814,15 @@ export default function App() {
                   
                   <div className="h-72">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={segmentData} margin={{ top: 15, right: 20, left: 15, bottom: 25 }}>
+                      <BarChart data={segmentData} margin={{ top: 15, right: 20, left: 15, bottom: 45 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                         <XAxis 
                           dataKey="name" 
                           stroke="#ffffff" 
                           strokeWidth={2}
-                          tick={{ fill: '#ffffff', fontSize: 11, fontWeight: 'bold' }} 
                           interval={0}
+                          height={55}
+                          tick={renderSegmentXAxisTick}
                         />
                         <YAxis 
                           stroke="#ffffff" 
@@ -764,6 +859,145 @@ export default function App() {
               </div>
 
             </div>
+
+            {/* Rincian Customer & Revenue Per Kategori, Bulan & Cabang Table */}
+            <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
+                <div>
+                  <h3 className="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
+                    <Users className="w-5 h-5 text-indigo-400" />
+                    Rincian Customer & Revenue Per Kategori, Bulan & Cabang
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Tabel breakdown jumlah customer unik, invoice, total revenue, dan ATV per segmen customer untuk setiap bulan dan cabang.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="px-3 py-1.5 bg-indigo-950/60 border border-indigo-500/30 rounded-xl text-xs font-semibold text-indigo-300">
+                    Record: <span className="font-extrabold text-white">{sortedSegmentDetail.length}</span>
+                  </div>
+                  <div className="px-3 py-1.5 bg-emerald-950/60 border border-emerald-500/30 rounded-xl text-xs font-semibold text-emerald-300">
+                    Total Revenue: <span className="font-extrabold text-emerald-400">{formatIDR(sortedSegmentDetail.reduce((s, i) => s + i.revenue, 0))}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm text-slate-300">
+                  <thead className="bg-slate-800/80 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    <tr>
+                      <th onClick={() => handleSortSegmentTable('month')} className="p-3.5 cursor-pointer hover:bg-slate-700/60 transition select-none group">
+                        <div className="flex items-center gap-1.5">
+                          <span>Bulan</span>
+                          {renderSortIcon(sortSegmentTable, 'month')}
+                        </div>
+                      </th>
+                      <th onClick={() => handleSortSegmentTable('branch_name')} className="p-3.5 cursor-pointer hover:bg-slate-700/60 transition select-none group">
+                        <div className="flex items-center gap-1.5">
+                          <span>Cabang</span>
+                          {renderSortIcon(sortSegmentTable, 'branch_name')}
+                        </div>
+                      </th>
+                      <th onClick={() => handleSortSegmentTable('segment')} className="p-3.5 cursor-pointer hover:bg-slate-700/60 transition select-none group">
+                        <div className="flex items-center gap-1.5">
+                          <span>Kategori Customer</span>
+                          {renderSortIcon(sortSegmentTable, 'segment')}
+                        </div>
+                      </th>
+                      <th onClick={() => handleSortSegmentTable('customers')} className="p-3.5 text-right cursor-pointer hover:bg-slate-700/60 transition select-none group">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <span>Jumlah Customer</span>
+                          {renderSortIcon(sortSegmentTable, 'customers')}
+                        </div>
+                      </th>
+                      <th onClick={() => handleSortSegmentTable('invoices')} className="p-3.5 text-right cursor-pointer hover:bg-slate-700/60 transition select-none group">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <span>Jumlah Invoice</span>
+                          {renderSortIcon(sortSegmentTable, 'invoices')}
+                        </div>
+                      </th>
+                      <th onClick={() => handleSortSegmentTable('revenue')} className="p-3.5 text-right cursor-pointer hover:bg-slate-700/60 transition select-none group">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <span>Total Revenue</span>
+                          {renderSortIcon(sortSegmentTable, 'revenue')}
+                        </div>
+                      </th>
+                      <th onClick={() => handleSortSegmentTable('atv')} className="p-3.5 text-right cursor-pointer hover:bg-slate-700/60 transition select-none group">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <span>ATV (Rata-Rata)</span>
+                          {renderSortIcon(sortSegmentTable, 'atv')}
+                        </div>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60">
+                    {sortedSegmentDetail.length > 0 ? (
+                      sortedSegmentDetail.map((item, idx) => {
+                        const atvVal = item.invoices > 0 ? Math.round(item.revenue / item.invoices) : 0;
+                        const monthText = item.month === '2022-10' ? 'Oktober 2022' : item.month === '2022-11' ? 'November 2022' : 'Desember 2022';
+                        return (
+                          <tr key={idx} className="hover:bg-slate-800/40 transition">
+                            <td className="p-3.5 font-medium text-slate-200">{monthText}</td>
+                            <td className="p-3.5 font-bold text-white">
+                              <span className="px-2.5 py-1 bg-slate-800 rounded-lg text-xs border border-slate-700/80">
+                                {item.branch_name}
+                              </span>
+                            </td>
+                            <td className="p-3.5">
+                              <span 
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+                                style={{ 
+                                  backgroundColor: `${SEGMENT_COLORS[item.segment]}20`,
+                                  color: SEGMENT_COLORS[item.segment] || '#ffffff',
+                                  border: `1px solid ${SEGMENT_COLORS[item.segment]}40`
+                                }}
+                              >
+                                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: SEGMENT_COLORS[item.segment] }}></span>
+                                {item.segment}
+                              </span>
+                            </td>
+                            <td className="p-3.5 text-right font-semibold text-slate-200">{formatNumber(item.customers)} Pasien</td>
+                            <td className="p-3.5 text-right font-medium text-slate-300">{formatNumber(item.invoices)} Invoice</td>
+                            <td className="p-3.5 text-right font-extrabold text-emerald-400">{formatIDR(item.revenue)}</td>
+                            <td className="p-3.5 text-right font-semibold text-purple-300">Rp {formatNumber(atvVal)}</td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan="7" className="p-8 text-center text-slate-500">
+                          Tidak ada data segmen customer yang sesuai dengan filter.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                  {sortedSegmentDetail.length > 0 && (
+                    <tfoot className="bg-slate-950/80 font-bold text-white border-t-2 border-slate-700/80">
+                      <tr>
+                        <td colSpan="3" className="p-3.5 text-right uppercase text-xs text-slate-400">Total Filtered:</td>
+                        <td className="p-3.5 text-right font-extrabold text-indigo-300">
+                          {formatNumber(sortedSegmentDetail.reduce((s, i) => s + i.customers, 0))} Pasien
+                        </td>
+                        <td className="p-3.5 text-right font-extrabold text-indigo-300">
+                          {formatNumber(sortedSegmentDetail.reduce((s, i) => s + i.invoices, 0))} Invoice
+                        </td>
+                        <td className="p-3.5 text-right font-extrabold text-emerald-400">
+                          {formatIDR(sortedSegmentDetail.reduce((s, i) => s + i.revenue, 0))}
+                        </td>
+                        <td className="p-3.5 text-right font-extrabold text-purple-300">
+                          Rp {formatNumber(
+                            sortedSegmentDetail.reduce((s, i) => s + i.invoices, 0) > 0 
+                              ? Math.round(sortedSegmentDetail.reduce((s, i) => s + i.revenue, 0) / sortedSegmentDetail.reduce((s, i) => s + i.invoices, 0)) 
+                              : 0
+                          )}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  )}
+                </table>
+              </div>
+            </div>
           </div>
         )}
 
@@ -771,46 +1005,52 @@ export default function App() {
         {activeTab === 'treatments' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl">
-              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <PackageCheck className="w-5 h-5 text-indigo-400" />
-                Top 10 Treatment Berdasarkan Revenue
-              </h3>
+              <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800/80">
+                <h3 className="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
+                  <PackageCheck className="w-5 h-5 text-indigo-400" />
+                  Top 10 Treatment Medis (Berdasarkan Revenue)
+                </h3>
+                <span className="text-xs bg-indigo-500/20 text-indigo-300 px-2.5 py-1 rounded-full border border-indigo-500/30 font-bold shrink-0">Treatment</span>
+              </div>
               <div className="space-y-3">
                 {data.top_treatments.map((t, idx) => (
                   <div key={idx} className="flex items-center justify-between p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/80 hover:border-indigo-500/40 transition">
                     <div className="flex items-center gap-3">
-                      <span className="w-7 h-7 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-bold flex items-center justify-center border border-indigo-500/30">
+                      <span className="w-7 h-7 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-extrabold flex items-center justify-center border border-indigo-500/30 shrink-0">
                         {idx + 1}
                       </span>
                       <div>
-                        <p className="font-bold text-sm text-slate-100">{t.name}</p>
+                        <p className="font-bold text-sm text-slate-100 tracking-wide">{t.name}</p>
                         <p className="text-xs text-slate-400">{t.count} transaksi | {t.qty} unit</p>
                       </div>
                     </div>
-                    <span className="font-extrabold text-emerald-400 text-sm">{formatIDR(t.revenue)}</span>
+                    <span className="font-extrabold text-emerald-400 text-sm shrink-0 ml-2">{formatIDR(t.revenue)}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl">
-              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <PackageCheck className="w-5 h-5 text-emerald-400" />
-                Top 10 Produk Berdasarkan Revenue
-              </h3>
+              <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800/80">
+                <h3 className="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
+                  <PackageCheck className="w-5 h-5 text-purple-400" />
+                  Top 10 Skincare Homecare (Berdasarkan Revenue)
+                </h3>
+                <span className="text-xs bg-purple-500/20 text-purple-300 px-2.5 py-1 rounded-full border border-purple-500/30 font-bold shrink-0">Skincare</span>
+              </div>
               <div className="space-y-3">
                 {data.top_products.map((p, idx) => (
                   <div key={idx} className="flex items-center justify-between p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/80 hover:border-emerald-500/40 transition">
                     <div className="flex items-center gap-3">
-                      <span className="w-7 h-7 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold flex items-center justify-center border border-emerald-500/30">
+                      <span className="w-7 h-7 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-extrabold flex items-center justify-center border border-emerald-500/30 shrink-0">
                         {idx + 1}
                       </span>
                       <div>
-                        <p className="font-bold text-sm text-slate-100">{p.name}</p>
+                        <p className="font-bold text-sm text-slate-100 tracking-wide">{p.name}</p>
                         <p className="text-xs text-slate-400">{formatNumber(p.qty)} unit terjual</p>
                       </div>
                     </div>
-                    <span className="font-extrabold text-emerald-400 text-sm">{formatIDR(p.revenue)}</span>
+                    <span className="font-extrabold text-emerald-400 text-sm shrink-0 ml-2">{formatIDR(p.revenue)}</span>
                   </div>
                 ))}
               </div>
@@ -818,7 +1058,107 @@ export default function App() {
           </div>
         )}
 
-        {/* Tab 4: Doctor Performance */}
+        {/* Tab 4: Transaction Composition (Product Only, Treatment Only, Mixed) */}
+        {activeTab === 'tx_types' && (
+          <div className="space-y-6">
+            <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl space-y-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
+                <div>
+                  <h3 className="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
+                    <Receipt className="w-5 h-5 text-amber-400" />
+                    Komposisi Tipe Transaksi (Product Only, Treatment Only, Mixed)
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Evaluasi porsi dan perbandingan kontribusi revenue, volume invoice, serta rata-rata ATV antara transaksi Skincare Only, Treatment Medis Only, dan Paket Mixed.
+                  </p>
+                </div>
+              </div>
+
+              {/* Grid 3 Cards for Tipe Transaksi Breakdown */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {txTypeData.filter(t => t.label !== 'Other').map((t, idx) => (
+                  <div 
+                    key={idx} 
+                    className="bg-slate-950/70 border rounded-2xl p-5 space-y-4 shadow-xl relative overflow-hidden group hover:border-slate-700 transition"
+                    style={{ borderColor: `${t.fill}40` }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span 
+                        className="px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider"
+                        style={{ backgroundColor: `${t.fill}20`, color: t.fill, border: `1px solid ${t.fill}40` }}
+                      >
+                        {t.label}
+                      </span>
+                      <span className="text-xs font-bold text-slate-400">{t.invPercentage}% Vol Invoice</span>
+                    </div>
+
+                    <div>
+                      <p className="text-xs text-slate-400 font-semibold mb-1">Total Revenue (Q4)</p>
+                      <h4 className="text-2xl font-black text-white">{formatIDR(t.revenue)}</h4>
+                      <p className="text-xs font-bold text-emerald-400 mt-0.5">{t.revPercentage}% dari Total Revenue</p>
+                    </div>
+
+                    <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                      <div>
+                        <p className="text-[10px] text-slate-400 uppercase font-semibold">Volume Invoice</p>
+                        <p className="font-bold text-slate-200">{formatNumber(t.invoices)} Invoice</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] text-slate-400 uppercase font-semibold">ATV (Avg Spend)</p>
+                        <p className="font-extrabold text-amber-300">Rp {formatNumber(t.atv)}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Detailed Comparison Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm text-slate-300">
+                  <thead className="bg-slate-800/80 text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    <tr>
+                      <th className="p-3.5">Tipe Transaksi</th>
+                      <th className="p-3.5 text-right">Jumlah Invoice</th>
+                      <th className="p-3.5 text-right">Porsi Invoice (%)</th>
+                      <th className="p-3.5 text-right">Total Revenue</th>
+                      <th className="p-3.5 text-right">Porsi Revenue (%)</th>
+                      <th className="p-3.5 text-right">ATV (Rata-Rata)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60">
+                    {txTypeData.map((item, idx) => (
+                      <tr key={idx} className="hover:bg-slate-800/40 transition">
+                        <td className="p-3.5 font-bold text-white flex items-center gap-2">
+                          <span className="w-3 h-3 rounded-full" style={{ backgroundColor: item.fill }}></span>
+                          {item.label}
+                        </td>
+                        <td className="p-3.5 text-right font-medium text-slate-200">{formatNumber(item.invoices)}</td>
+                        <td className="p-3.5 text-right font-bold text-slate-300">{item.invPercentage}%</td>
+                        <td className="p-3.5 text-right font-extrabold text-emerald-400">{formatIDR(item.revenue)}</td>
+                        <td className="p-3.5 text-right font-extrabold text-indigo-300">{item.revPercentage}%</td>
+                        <td className="p-3.5 text-right font-bold text-amber-300">Rp {formatNumber(item.atv)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot className="bg-slate-950/80 font-bold text-white border-t-2 border-slate-700/80">
+                    <tr>
+                      <td className="p-3.5 uppercase text-xs text-slate-400">Total / Overall:</td>
+                      <td className="p-3.5 text-right font-extrabold text-indigo-300">{formatNumber(txTypeData.reduce((s, i) => s + i.invoices, 0))}</td>
+                      <td className="p-3.5 text-right font-bold text-indigo-300">100.0%</td>
+                      <td className="p-3.5 text-right font-extrabold text-emerald-400">{formatIDR(txTypeData.reduce((s, i) => s + i.revenue, 0))}</td>
+                      <td className="p-3.5 text-right font-bold text-emerald-400">100.0%</td>
+                      <td className="p-3.5 text-right font-extrabold text-amber-300">
+                        Rp {formatNumber(Math.round(txTypeData.reduce((s, i) => s + i.revenue, 0) / txTypeData.reduce((s, i) => s + i.invoices, 0)))}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 5: Doctor Performance */}
         {activeTab === 'doctors' && (
           <div className="space-y-6">
             <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl">
@@ -948,7 +1288,7 @@ export default function App() {
                     <span className="text-xs bg-purple-500/20 text-purple-300 px-2.5 py-0.5 rounded-full border border-purple-500/30">Komersial</span>
                   </div>
                   <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                    Pasien Baru (<strong>New Customer</strong>) memiliki ATV tertinggi yaitu <strong>Rp 749.905</strong> per transaksi, 42% lebih tinggi dibanding rata-rata ATV bisnis (Rp 478rb).
+                    Pasien Baru (<strong>New Customer</strong>) memiliki ATV tertinggi yaitu <strong>Rp 749.905</strong> per transaksi, 57% lebih tinggi dibanding rata-rata ATV bisnis (Rp 478rb).
                   </p>
                 </div>
 
@@ -1136,16 +1476,127 @@ export default function App() {
                 </div>
               </div>
             </div>
+
+            {/* Sidoarjo Customer Segment & Doctor Breakdown */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Card 1: Breakdown Segmen Customer Sidoarjo */}
+              <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl">
+                <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                  <Users className="w-5 h-5 text-indigo-400" />
+                  Breakdown Segmen Customer Cabang Sidoarjo
+                </h3>
+                <p className="text-xs text-slate-400 mb-4">Distribusi pasien, volume invoice, revenue, dan ATV per segmen customer di Cabang Sidoarjo</p>
+                <div className="space-y-3">
+                  <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex justify-between items-center">
+                    <div>
+                      <p className="text-xs font-bold text-indigo-300">Repeat Customer (Loyal)</p>
+                      <p className="text-[11px] text-slate-400">4.763 Invoice (56,3% Vol) | 4.031 Pasien</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-extrabold text-emerald-400">Rp 2,08 Miliar (57,7%)</p>
+                      <p className="text-[10px] text-purple-300">ATV Rp 437.432</p>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex justify-between items-center">
+                    <div>
+                      <p className="text-xs font-bold text-purple-300">Reactivated Customer</p>
+                      <p className="text-[11px] text-slate-400">912 Invoice (10,8% Vol) | 912 Pasien</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-extrabold text-emerald-400">Rp 475,47 Jt (13,2%)</p>
+                      <p className="text-[10px] text-purple-300">ATV Rp 521.347</p>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex justify-between items-center">
+                    <div>
+                      <p className="text-xs font-bold text-emerald-300">New Customer (Pasien Baru)</p>
+                      <p className="text-[11px] text-slate-400">766 Invoice (9,1% Vol) | 766 Pasien</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-extrabold text-emerald-400">Rp 505,48 Jt (14,0%)</p>
+                      <p className="text-[10px] text-purple-300">ATV Rp 659.893</p>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex justify-between items-center">
+                    <div>
+                      <p className="text-xs font-bold text-amber-300">Non Member (Tinggi Tapi ATV Rendah)</p>
+                      <p className="text-[11px] text-slate-400">2.219 Invoice (26,2% Vol) | 2.219 Pasien</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-extrabold text-amber-400">Rp 433,69 Jt (12,0%)</p>
+                      <p className="text-[10px] text-rose-400 font-bold">ATV Rp 195.442 (Terendah)</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card 2: Performa Dokter Penanggung Jawab Sidoarjo */}
+              <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl">
+                <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                  <Stethoscope className="w-5 h-5 text-sky-400" />
+                  Performa Dokter Penanggung Jawab Sidoarjo
+                </h3>
+                <p className="text-xs text-slate-400 mb-4">Peringkat kontribusi dokter yang bertugas di Cabang Sidoarjo</p>
+                <div className="space-y-3 text-xs">
+                  <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex justify-between items-center">
+                    <div>
+                      <p className="font-bold text-white">Doctor-0031</p>
+                      <p className="text-[11px] text-slate-400">4.246 Transaksi</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-extrabold text-emerald-400">Rp 2,47 Miliar</p>
+                      <p className="text-[10px] text-slate-400">ATV Rp 580.990</p>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex justify-between items-center">
+                    <div>
+                      <p className="font-bold text-white">Doctor-0028</p>
+                      <p className="text-[11px] text-slate-400">3.625 Transaksi</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-extrabold text-emerald-400">Rp 1,80 Miliar</p>
+                      <p className="text-[10px] text-slate-400">ATV Rp 497.516</p>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex justify-between items-center">
+                    <div>
+                      <p className="font-bold text-white">Doctor-0030</p>
+                      <p className="text-[11px] text-slate-400">2.418 Transaksi</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-extrabold text-emerald-400">Rp 1,49 Miliar</p>
+                      <p className="text-[10px] text-slate-400">ATV Rp 617.031</p>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex justify-between items-center">
+                    <div>
+                      <p className="font-bold text-white">Doctor-0029</p>
+                      <p className="text-[11px] text-slate-400">2.065 Transaksi</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-extrabold text-emerald-400">Rp 1,27 Miliar</p>
+                      <p className="text-[10px] text-slate-400">ATV Rp 614.052</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Tab 8: Audit & Profiling Data (Bagian 1-A) */}
+        {/* Tab 8: Audit & Profiling Data */}
         {activeTab === 'profiling' && (
           <div className="space-y-6">
             <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl">
               <h3 className="text-xl font-extrabold text-white mb-2 flex items-center gap-2">
                 <FileSpreadsheet className="w-6 h-6 text-indigo-400" />
-                Hasil Audit Profiling Data & Data Integrity (Bagian 1-A)
+                Hasil Audit Profiling Data & Data Integrity
               </h3>
               <p className="text-xs text-slate-400 mb-6">Pengecekan volume data, duplikasi, data NULL, integritas relasi tabel, dan pencegahan double counting</p>
 
