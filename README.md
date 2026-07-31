@@ -22,7 +22,7 @@
 
 ## 🖼️ Tangkapan Layar Interactive Web Dashboard
 
-![Executive Business & Patient Migration Dashboard](./Dashboard%20-%20PT%20Kosmetika%20Klinik%20Indonesia.png)
+![Executive Business & Patient Migration Dashboard](dashboard_preview.png)
 
 ---
 
