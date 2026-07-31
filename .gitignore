@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Production builds
+dist/
+build/
+.output/
+
+# Local Environment Variables
+.env
+.env.local
+.env.*.local
+
+# IDE / Editor config
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS Metadata
+.DS_Store
+Thumbs.db
+
+# Vite & Cache
+.vite/
+*.log
+
+# Vercel deployment metadata
+.vercel
