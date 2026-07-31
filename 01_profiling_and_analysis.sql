@@ -9,7 +9,7 @@
 -- A. PROFILING DATA & DUPLICATE / NULL / INTEGRITY / DOUBLE COUNTING CHECKS
 -- -----------------------------------------------------------------------------
 
--- 1. Total Volume Data Per Tabel
+-- 1. Total Volume Data Per Tabel (Pengecekan Jumlah Data)
 SELECT 'branches' AS table_name, COUNT(*) AS total_rows FROM candidate_source.branches
 UNION ALL
 SELECT 'doctors', COUNT(*) FROM candidate_source.doctors
@@ -35,16 +35,10 @@ SELECT
     ROUND(SUM(CASE WHEN legacy_rm_code IS NULL OR TRIM(legacy_rm_code) = '' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS pct_null_rm,
     SUM(CASE WHEN legacy_phone IS NULL OR TRIM(legacy_phone) = '' THEN 1 ELSE 0 END) AS null_phone,
     ROUND(SUM(CASE WHEN legacy_phone IS NULL OR TRIM(legacy_phone) = '' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS pct_null_phone,
-    SUM(CASE WHEN legacy_gender IS NULL OR TRIM(legacy_gender) = '' THEN 1 ELSE 0 END) AS null_gender,
-    ROUND(SUM(CASE WHEN legacy_gender IS NULL OR TRIM(legacy_gender) = '' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS pct_null_gender,
     SUM(CASE WHEN legacy_birth_date IS NULL THEN 1 ELSE 0 END) AS null_dob,
     ROUND(SUM(CASE WHEN legacy_birth_date IS NULL THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS pct_null_dob,
-    SUM(CASE WHEN legacy_occupation IS NULL OR TRIM(legacy_occupation) = '' THEN 1 ELSE 0 END) AS null_occupation,
-    ROUND(SUM(CASE WHEN legacy_occupation IS NULL OR TRIM(legacy_occupation) = '' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS pct_null_occupation,
-    SUM(CASE WHEN legacy_religion IS NULL OR TRIM(legacy_religion) = '' THEN 1 ELSE 0 END) AS null_religion,
-    ROUND(SUM(CASE WHEN legacy_religion IS NULL OR TRIM(legacy_religion) = '' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS pct_null_religion,
-    SUM(CASE WHEN legacy_information_source IS NULL OR TRIM(legacy_information_source) = '' THEN 1 ELSE 0 END) AS null_info_source,
-    ROUND(SUM(CASE WHEN legacy_information_source IS NULL OR TRIM(legacy_information_source) = '' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS pct_null_info_source
+    SUM(CASE WHEN legacy_birth_date = '1970-01-01' THEN 1 ELSE 0 END) AS placeholder_dob_1970,
+    ROUND(SUM(CASE WHEN legacy_birth_date = '1970-01-01' THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 2) AS pct_placeholder_dob
 FROM candidate_source.source_patients;
 
 -- 3. Analisis Duplikasi RM Code dan Nomor Telepon pada source_patients
@@ -60,9 +54,33 @@ WHERE legacy_phone IS NOT NULL AND TRIM(legacy_phone) != ''
 GROUP BY legacy_phone
 HAVING COUNT(*) > 1;
 
--- 4. Analisis Double Counting (Header Revenue vs Sum Item Details)
--- Catatan: Menggabungkan transactions (header) dengan detail item (1-to-many) tanpa mengagregasi 
--- detail terlebih dahulu akan menyebabkan nilai header_total_amount terduplikasi sebanyak jumlah detail baris.
+-- 4. Pengecekan Transaksi Tanpa Pasien (Non Member) dan Transaksi Tanpa Dokter (OTC / Product Only)
+SELECT 
+    'Transaksi Tanpa Patient Key (Non Member)' AS check_type,
+    COUNT(*) AS total_transactions,
+    SUM(CASE WHEN is_non_member = 1 THEN 1 ELSE 0 END) AS valid_non_member_flag,
+    SUM(header_total_amount) AS impact_revenue
+FROM candidate_source.transactions
+WHERE patient_key IS NULL OR TRIM(patient_key) = ''
+UNION ALL
+SELECT 
+    'Transaksi Tanpa Dokter (Product Only Kasir)',
+    COUNT(*),
+    SUM(CASE WHEN tipe_transaksi = 1 THEN 1 ELSE 0 END),
+    SUM(header_total_amount)
+FROM candidate_source.transactions
+WHERE doctor_id IS NULL OR TRIM(doctor_id) = '';
+
+-- 5. Pengecekan Detail Tanpa Header (Orphan Item Details)
+SELECT 'Orphan Treatment Details' AS check_type, COUNT(*) AS orphan_count
+FROM candidate_source.treatment_details
+WHERE transaction_key NOT IN (SELECT transaction_key FROM candidate_source.transactions)
+UNION ALL
+SELECT 'Orphan Product Details', COUNT(*)
+FROM candidate_source.product_details
+WHERE transaction_key NOT IN (SELECT transaction_key FROM candidate_source.transactions);
+
+-- 6. Analisis Double Counting (Header Revenue vs Sum Item Details vs Naive Join)
 SELECT 
     'Header Only Total Revenue' AS metric_type,
     SUM(header_total_amount) AS total_revenue
