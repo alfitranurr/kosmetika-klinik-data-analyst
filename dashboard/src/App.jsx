@@ -204,20 +204,21 @@ export default function App() {
       <header className="border-b border-slate-800/80 bg-slate-900/90 backdrop-blur-xl sticky top-0 z-50 shadow-2xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <div className="flex items-center gap-3">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-200 bg-clip-text text-transparent">
+              Executive Business & Patient Migration Dashboard
+            </h1>
+            <div className="flex flex-wrap items-center gap-3 mt-2 text-xs sm:text-sm text-slate-400">
               <span className="px-3 py-1 text-xs font-bold rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-sm">
                 Technical Test Data Analyst
               </span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-2 bg-gradient-to-r from-white via-slate-200 to-indigo-200 bg-clip-text text-transparent">
-              Executive Business & Patient Migration Dashboard
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-400 flex items-center gap-2 mt-1.5">
-              <UserCheck className="w-4 h-4 text-emerald-400" />
-              <span>Kandidat: <strong className="text-slate-100 font-semibold">Al Fitra Nur Ramadhani</strong></span>
               <span className="text-slate-600">•</span>
-              <span className="text-slate-400">Periode Data: Q4 2022</span>
-            </p>
+              <div className="flex items-center gap-1.5">
+                <UserCheck className="w-4 h-4 text-emerald-400" />
+                <span>Kandidat: <strong className="text-slate-100 font-semibold">Al Fitra Nur Ramadhani</strong></span>
+              </div>
+              <span className="text-slate-600">•</span>
+              <span className="text-slate-400 font-medium">Periode: Q4 2022</span>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
