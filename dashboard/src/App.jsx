@@ -382,7 +382,7 @@ export default function App() {
                 : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
             }`}
           >
-            <Activity className="w-4 h-4" />
+            <Activity className="w-4 h-4 text-cyan-400" />
             <span>Performa Cabang & Tren</span>
           </button>
 
@@ -394,7 +394,7 @@ export default function App() {
                 : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
             }`}
           >
-            <Users className="w-4 h-4" />
+            <Users className="w-4 h-4 text-purple-400" />
             <span>Segmentasi Customer</span>
           </button>
 
@@ -406,7 +406,7 @@ export default function App() {
                 : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
             }`}
           >
-            <PackageCheck className="w-4 h-4" />
+            <PackageCheck className="w-4 h-4 text-emerald-400" />
             <span>Top Treatment & Produk</span>
           </button>
 
@@ -418,7 +418,7 @@ export default function App() {
                 : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
             }`}
           >
-            <Stethoscope className="w-4 h-4" />
+            <Stethoscope className="w-4 h-4 text-sky-400" />
             <span>Performa Dokter & Tipe Tx</span>
           </button>
 
@@ -454,7 +454,7 @@ export default function App() {
                 : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
             }`}
           >
-            <Award className="w-4 h-4" />
+            <Award className="w-4 h-4 text-amber-300" />
             <span>5 Insight & 3 Action Plan</span>
           </button>
 
@@ -466,7 +466,7 @@ export default function App() {
                 : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
             }`}
           >
-            <ShieldCheck className="w-4 h-4" />
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
             <span>Rekonsiliasi Migrasi Pasien</span>
           </button>
         </div>
