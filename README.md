@@ -3,7 +3,7 @@
 **Kandidat:** Al Fitra Nur Ramadhani  
 **Posisi:** Data Analyst  
 **Periode Data:** Q4 2022 (Oktober – Desember 2022) | Cabang 1 – 4  
-**Target Repository & Deploy:** Ready for Vercel Deployment  
+**Target Deliverables:** Interactive Web Dashboard & Patient Data Migration  
 
 ---
 
@@ -16,16 +16,15 @@ Al_Fitra_Nur_Ramadhani/
 ├── 01_profiling_and_analysis.sql   # SQL Profiling, Performa Bisnis, Segmentasi, Produk/Treatment/Dokter, & Analisis Cabang
 ├── 02_patient_migration.sql        # Script SQL Stored Procedure Migrasi Pasien (Idempotent, Normalisasi, Logging & Konflik)
 ├── 03_migration_validation.sql     # SQL Validasi, Audit Rekonsiliasi, & Uji Idempotensi
-├── dashboard/                      # Web Dashboard Interaktif (Vercel-ready, React + Tailwind + Recharts)
+├── dashboard/                      # Web Dashboard Interaktif (React + Tailwind + Recharts)
 │   ├── package.json
-│   ├── vercel.json
 │   ├── src/
 │   │   ├── App.jsx                 # UI Dashboard Interaktif
 │   │   ├── data/clinicData.json    # Dataset Q4 2022 Parsed Real Metrics
 │   │   └── ...
 │   └── dist/                       # Production Web Bundle
 ├── executive_summary.pdf           # Executive Summary PDF (Maksimal 2 Halaman, Desain Komersial & Profesional)
-└── README.md                       # Dokumentasi Hasil Analisis & Tutorial Step-by-Step Deploy Vercel
+└── README.md                       # Dokumentasi Hasil Analisis & Petunjuk Eksekusi SQL
 ```
 
 ---
@@ -112,9 +111,7 @@ Pada kuartal ke-4 tahun 2022 (Oktober - Desember 2022), PT Kosmetika Klinik Indo
 
 ---
 
-## 🛠️ 6. TUTORIAL STEP-BY-STEP EKSEKUSI SQL & DEPLOYMENT
-
-### A. Panduan Eksekusi File SQL (`01`, `02`, `03`)
+## 🛠️ 6. TUTORIAL STEP-BY-STEP EKSEKUSI FILE SQL
 
 1. **Persiapan Database:**
    Pastikan Anda memiliki akses ke MySQL/MariaDB Server. Buat 2 database:
@@ -133,44 +130,6 @@ Pada kuartal ke-4 tahun 2022 (Oktober - Desember 2022), PT Kosmetika Klinik Indo
    Eksekusi `Al_Fitra_Nur_Ramadhani/02_patient_migration.sql` untuk membuat dan memanggil Stored Procedure `sp_migrate_patient_data()`.
 5. **Menjalankan Validasi & Rekonsiliasi:**
    Eksekusi `Al_Fitra_Nur_Ramadhani/03_migration_validation.sql` untuk mengecek audit migrasi & memastikan status 100% SUCCESS.
-
----
-
-### B. Panduan Step-by-Step Deploy Web Dashboard ke Vercel
-
-Aplikasi Web Dashboard di dalam folder `dashboard/` dirancang menggunakan **Vite + React + Tailwind CSS** dan telah dilengkapi konfigurasi `vercel.json` sehingga sangat mudah dideploy secara gratis ke Vercel!
-
-#### Method 1: Deploy via Vercel CLI (Paling Cepat)
-
-1. **Buka Terminal / PowerShell** dan masuk ke direktori dashboard:
-   ```bash
-   cd "c:\Users\HYPE-R FLIP\Downloads\PT Kosmetika Klinik Indonesia\Al_Fitra_Nur_Ramadhani\dashboard"
-   ```
-2. **Install Vercel CLI** (jika belum ada):
-   ```bash
-   npm install -g vercel
-   ```
-3. **Jalankan Perintah Deploy:**
-   ```bash
-   vercel
-   ```
-4. Ikuti petunjuk interaktif di terminal:
-   - *Set up and deploy?* $\rightarrow$ ketik `y` dan tekan Enter.
-   - *Which scope?* $\rightarrow$ Pilih akun Vercel Anda.
-   - *Link to existing project?* $\rightarrow$ ketik `n`.
-   - *What's your project's name?* $\rightarrow$ ketik `pt-kosmetika-dashboard`.
-   - *In which directory is your code located?* $\rightarrow$ tekan Enter (`./`).
-   - Vercel akan otomatis mendeteksi framework **Vite** dan melakukan build `dist/`.
-5. **Selesai!** Vercel akan memberikan URL Live Dashboard (contoh: `https://pt-kosmetika-dashboard.vercel.app`).
-
-#### Method 2: Deploy via GitHub & Vercel Dashboard Website
-
-1. Upload folder `Al_Fitra_Nur_Ramadhani/dashboard` ke repository GitHub Anda.
-2. Buka [https://vercel.com](https://vercel.com) dan login dengan akun GitHub Anda.
-3. Klik tombol **"Add New"** $\rightarrow$ **"Project"**.
-4. Pilih repository GitHub Anda.
-5. Pada bagian **Root Directory**, klik **Edit** dan pilih folder `Al_Fitra_Nur_Ramadhani/dashboard`.
-6. Klik **Deploy**. Vercel akan memproses build secara otomatis dalam waktu ~30 detik dan memberikan URL live!
 
 ---
 
