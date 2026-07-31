@@ -458,7 +458,7 @@ export default function App() {
                 <p className="text-xs text-slate-400 mb-6">Pertumbuhan MoM: Oktober (Rp 8.09M) → November (Rp 7.72M) → Desember (Rp 8.51M)</p>
                 <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={monthlyTrendData} margin={{ top: 10, right: 20, left: 10, bottom: 10 }}>
+                    <BarChart data={monthlyTrendData} margin={{ top: 10, right: 20, left: 15, bottom: 10 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                       <XAxis 
                         dataKey="monthLabel" 
@@ -471,7 +471,7 @@ export default function App() {
                         strokeWidth={2}
                         tick={{ fill: '#ffffff', fontSize: 11, fontWeight: 'bold' }} 
                         tickFormatter={(val) => val === 0 ? 'Rp 0' : `Rp ${(val / 1e9).toFixed(1)} M`} 
-                        width={70} 
+                        width={80} 
                       />
                       <Tooltip 
                         formatter={(val) => [`Rp ${val.toLocaleString('id-ID')}`, 'Revenue']}
@@ -694,7 +694,7 @@ export default function App() {
                   
                   <div className="h-72">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={segmentData} margin={{ top: 15, right: 20, left: 10, bottom: 25 }}>
+                      <BarChart data={segmentData} margin={{ top: 15, right: 20, left: 15, bottom: 25 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                         <XAxis 
                           dataKey="name" 
@@ -708,7 +708,7 @@ export default function App() {
                           strokeWidth={2}
                           tick={{ fill: '#ffffff', fontSize: 11, fontWeight: 'bold' }} 
                           tickFormatter={(val) => val === 0 ? 'Rp 0' : `Rp ${(val / 1e3).toFixed(0)} rb`} 
-                          width={68} 
+                          width={80} 
                         />
                         <Tooltip 
                           formatter={(val) => [`Rp ${Math.round(val).toLocaleString('id-ID')}`, 'ATV (Rata-Rata Transaksi)']} 
