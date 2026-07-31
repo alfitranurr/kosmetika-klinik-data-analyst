@@ -423,6 +423,30 @@ export default function App() {
           </button>
 
           <button 
+            onClick={() => setActiveTab('sidoarjo')}
+            className={`px-4 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center gap-2 whitespace-nowrap ${
+              activeTab === 'sidoarjo' 
+                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/20' 
+                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
+            }`}
+          >
+            <AlertTriangle className="w-4 h-4 text-amber-400" />
+            <span>Deep Dive Sidoarjo (1-E)</span>
+          </button>
+
+          <button 
+            onClick={() => setActiveTab('profiling')}
+            className={`px-4 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center gap-2 whitespace-nowrap ${
+              activeTab === 'profiling' 
+                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/20' 
+                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700'
+            }`}
+          >
+            <FileSpreadsheet className="w-4 h-4 text-indigo-400" />
+            <span>Audit Profiling Data (1-A)</span>
+          </button>
+
+          <button 
             onClick={() => setActiveTab('insights')}
             className={`px-4 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center gap-2 whitespace-nowrap ${
               activeTab === 'insights' 
@@ -1007,6 +1031,154 @@ export default function App() {
                       <p><strong>Timeline:</strong> 2 Bulan (Jan-Feb 2023).</p>
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 7: Deep Dive Cabang Sidoarjo (Bagian 1-E) */}
+        {activeTab === 'sidoarjo' && (
+          <div className="space-y-6">
+            <div className="bg-gradient-to-br from-amber-950/80 via-slate-900 to-slate-900 border border-amber-500/30 rounded-2xl p-6 shadow-2xl backdrop-blur-xl">
+              <div className="flex items-center gap-3.5 mb-4">
+                <div className="p-3 bg-amber-500/20 rounded-2xl text-amber-400 border border-amber-500/30">
+                  <AlertTriangle className="w-8 h-8" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-extrabold text-white">Analisis Cabang Prioritas: CABANG SIDOARJO</h3>
+                  <p className="text-xs text-amber-300 font-medium">Cabang dengan kontribusi revenue terendah (14,83%) dan ATV terendah (Rp 426rb)</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-6">
+                <div className="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+                  <p className="text-xs text-slate-400 font-medium">Total Revenue Q4</p>
+                  <p className="text-xl font-extrabold text-amber-400 mt-1">Rp 3,61 Miliar</p>
+                  <p className="text-[10px] text-slate-400 mt-1">Kontribusi 14.83% Klinik</p>
+                </div>
+                <div className="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+                  <p className="text-xs text-slate-400 font-medium">Average Transaction Value</p>
+                  <p className="text-xl font-extrabold text-rose-400 mt-1">Rp 426.468</p>
+                  <p className="text-[10px] text-slate-400 mt-1">Terendah dari 4 Cabang</p>
+                </div>
+                <div className="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+                  <p className="text-xs text-slate-400 font-medium">Total Invoice</p>
+                  <p className="text-xl font-extrabold text-white mt-1">8.460</p>
+                  <p className="text-[10px] text-slate-400 mt-1">49.6% dari Surabaya</p>
+                </div>
+                <div className="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+                  <p className="text-xs text-indigo-400 font-bold">Porsi Transaksi Mixed</p>
+                  <p className="text-xl font-extrabold text-indigo-400 mt-1">11,61%</p>
+                  <p className="text-[10px] text-slate-400 mt-1">Cross-selling terendah</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Sidoarjo Monthly Growth Trend */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl">
+                <h3 className="text-lg font-bold text-white mb-2">Tren Pertumbuhan Bulanan Sidoarjo (Q4)</h3>
+                <p className="text-xs text-slate-400 mb-4">Oktober: Rp 1.09M (ATV Rp 377rb) → November: Rp 1.17M (ATV Rp 456rb) → Desember: Rp 1.35M (ATV Rp 447rb)</p>
+                <div className="space-y-3">
+                  <div className="p-3.5 bg-slate-950/60 rounded-xl border border-slate-800 flex justify-between items-center">
+                    <div>
+                      <p className="text-xs font-bold text-white">Oktober 2022</p>
+                      <p className="text-[11px] text-slate-400">2.884 Invoice | 1.822 Pasien</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-extrabold text-emerald-400">Rp 1,09 Miliar</p>
+                      <p className="text-[10px] text-slate-400">ATV Rp 377.532</p>
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-950/60 rounded-xl border border-slate-800 flex justify-between items-center">
+                    <div>
+                      <p className="text-xs font-bold text-white">November 2022</p>
+                      <p className="text-[11px] text-slate-400">2.562 Invoice | 1.645 Pasien</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-extrabold text-emerald-400">Rp 1,17 Miliar (+7.5%)</p>
+                      <p className="text-[10px] text-slate-400">ATV Rp 456.933</p>
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-950/60 rounded-xl border border-slate-800 flex justify-between items-center">
+                    <div>
+                      <p className="text-xs font-bold text-white">Desember 2022</p>
+                      <p className="text-[11px] text-slate-400">3.014 Invoice | 1.901 Pasien</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-extrabold text-emerald-400">Rp 1,35 Miliar (+15.2%)</p>
+                      <p className="text-[10px] text-slate-400">ATV Rp 447.399</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl">
+                <h3 className="text-lg font-bold text-white mb-2">Akar Masalah Kunci & Strategi Solusi Sidoarjo</h3>
+                <div className="space-y-3.5 text-xs text-slate-300">
+                  <div className="p-3 bg-rose-950/40 rounded-xl border border-rose-800/50">
+                    <p className="font-bold text-rose-300">1. Rendahnya Cross-Selling Treatment + Skincare</p>
+                    <p className="mt-1 text-slate-300">Porsi transaksi Mixed hanya 11,6% (terendah dari 4 cabang). Pasien yang melakukan treatment medis tidak direkomendasikan paket skincare homecare pasca-treatment.</p>
+                  </div>
+
+                  <div className="p-3 bg-amber-950/40 rounded-xl border border-amber-800/50">
+                    <p className="font-bold text-amber-300">2. Proporsi Non-Member Ber-ATV Rendah Terlalu Tinggi</p>
+                    <p className="mt-1 text-slate-300">2.215 invoice Non Member (26,2% transaksi Sidoarjo) dengan ATV hanya Rp 183rb belum mendaftar member resmi.</p>
+                  </div>
+
+                  <div className="p-3 bg-emerald-950/40 rounded-xl border border-emerald-800/50">
+                    <p className="font-bold text-emerald-300">3. Solusi Prioritas & Target Recovery</p>
+                    <p className="mt-1 text-slate-300">Terapkan SOP konsultasi resep bundling hero treatment + skincare, tingkatkan ATV Sidoarjo dari Rp 426rb ke Rp 480rb (+12,5%).</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 8: Audit & Profiling Data (Bagian 1-A) */}
+        {activeTab === 'profiling' && (
+          <div className="space-y-6">
+            <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl">
+              <h3 className="text-xl font-extrabold text-white mb-2 flex items-center gap-2">
+                <FileSpreadsheet className="w-6 h-6 text-indigo-400" />
+                Hasil Audit Profiling Data & Data Integrity (Bagian 1-A)
+              </h3>
+              <p className="text-xs text-slate-400 mb-6">Pengecekan volume data, duplikasi, data NULL, integritas relasi tabel, dan pencegahan double counting</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-2">
+                  <p className="text-xs font-bold text-indigo-400">1. Data Volume Audit</p>
+                  <p className="text-xs text-slate-300">Total 9 Tabel Utama Terverifikasi Utuh:</p>
+                  <ul className="text-[11px] text-slate-400 space-y-1">
+                    <li>• <strong className="text-white">transactions</strong>: 50.856 baris</li>
+                    <li>• <strong className="text-white">patients_anonymized</strong>: 21.993 baris</li>
+                    <li>• <strong className="text-white">product_details</strong>: 168.936 baris</li>
+                    <li>• <strong className="text-white">treatment_details</strong>: 32.712 baris</li>
+                  </ul>
+                </div>
+
+                <div className="p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-2">
+                  <p className="text-xs font-bold text-amber-400">2. Data NULL & Duplikasi Audit</p>
+                  <p className="text-xs text-slate-300">Temuan Log Kualitas Data Pasien Legacy:</p>
+                  <ul className="text-[11px] text-slate-400 space-y-1">
+                    <li>• <strong className="text-amber-300">105 baris</strong> RM Code NULL/Kosong</li>
+                    <li>• <strong className="text-amber-300">34 baris</strong> RM Code Duplikat</li>
+                    <li>• <strong className="text-amber-300">501 baris</strong> DOB Placeholder 1970</li>
+                  </ul>
+                </div>
+
+                <div className="p-4 bg-slate-950/60 rounded-xl border border-slate-800 space-y-2">
+                  <p className="text-xs font-bold text-emerald-400">3. Pencegahan Double Counting</p>
+                  <p className="text-xs text-slate-300">Audit Total Revenue Q4 2022:</p>
+                  <ul className="text-[11px] text-slate-400 space-y-1">
+                    <li>• <strong className="text-emerald-400">Header Total Revenue</strong>: Rp 24,33 Miliar</li>
+                    <li>• <strong className="text-emerald-400">Sum Item Details</strong>: Rp 24,33 Miliar</li>
+                    <li>• <strong className="text-rose-400">Naive Join (Double Counted)</strong>: Rp 46,01 Miliar (+89,1%)</li>
+                  </ul>
                 </div>
               </div>
             </div>
