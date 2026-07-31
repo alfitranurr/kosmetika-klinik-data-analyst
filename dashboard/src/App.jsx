@@ -208,21 +208,22 @@ export default function App() {
               <span className="px-3 py-1 text-xs font-bold rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-sm">
                 Technical Test Data Analyst
               </span>
-              <span className="text-xs font-medium text-slate-400">PT Kosmetika Klinik Indonesia</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-1.5 bg-gradient-to-r from-white via-slate-200 to-indigo-200 bg-clip-text text-transparent">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-2 bg-gradient-to-r from-white via-slate-200 to-indigo-200 bg-clip-text text-transparent">
               Executive Business & Patient Migration Dashboard
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 flex items-center gap-2 mt-1">
+            <p className="text-xs sm:text-sm text-slate-400 flex items-center gap-2 mt-1.5">
               <UserCheck className="w-4 h-4 text-emerald-400" />
               <span>Kandidat: <strong className="text-slate-100 font-semibold">Al Fitra Nur Ramadhani</strong></span>
+              <span className="text-slate-600">•</span>
+              <span className="text-slate-400">Periode Data: Q4 2022</span>
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800/80 border border-slate-700/80 text-xs font-semibold text-emerald-400 shadow-inner">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              Vercel Deployment Ready
+            <span className="inline-flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-slate-800/90 border border-slate-700/80 text-xs font-bold text-slate-200 shadow-md">
+              <span className="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-pulse"></span>
+              PT Kosmetika Klinik Indonesia
             </span>
           </div>
         </div>
