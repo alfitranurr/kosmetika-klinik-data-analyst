@@ -1,4 +1,4 @@
-# Technical Test Data Analyst — PT Kosmetika Klinik Indonesia
+# Technical Test Data Analyst - PT Kosmetika Klinik Indonesia
 
 [![Live Dashboard](https://img.shields.io/badge/Live_Dashboard-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://kosmetika-klinik-data-analyst.vercel.app/)
 [![Database](https://img.shields.io/badge/Database-MySQL%20%2F%20SQLite-4479A1?style=for-the-badge&logo=mysql&logoColor=white)](https://github.com/alfitranurr/kosmetika-klinik-data-analyst)
