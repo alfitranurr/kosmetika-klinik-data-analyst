@@ -12,7 +12,7 @@
 
 - **Nama Lengkap:** Al Fitra Nur Ramadhani  
 - **Pendidikan:** S1 Sarjana Informatika — Universitas Muhammadiyah Malang (UMM)  
-- **Fokus Keahlian:** Data Science, Data Analytics, Business Intelligence & Database Engineering  
+- **Fokus Keahlian:** Data Science, Data Analytics, Business Intelligence & AI Automation  
 - **Email:** [alfitranurr@gmail.com](mailto:alfitranurr@gmail.com)  
 - **Web Portfolio:** [https://alfitranurr.vercel.app](https://alfitranurr.vercel.app)  
 - **GitHub Repository:** [https://github.com/alfitranurr/kosmetika-klinik-data-analyst](https://github.com/alfitranurr/kosmetika-klinik-data-analyst)  
@@ -93,20 +93,20 @@ Al_Fitra_Nur_Ramadhani/
 
 Total Revenue Q4: **Rp 24,33 Miliar** | Total Invoice: **50.856 Invoice** | Pasien Unik: **21.993 Pasien** | ATV Rata-rata: **Rp 478.488**
 
-| Bulan | Cabang | Total Revenue (IDR) | Total Invoice | Pasien Unik | ATV (IDR) | MoM Growth | Kontribusi Cabang |
-| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **2022-10** | MALANG | Rp 1.706.668.300 | 3.753 | 2.301 | Rp 454.748 | - | 21,08% |
-| **2022-10** | SURABAYA | Rp 3.115.396.800 | 5.795 | 3.881 | Rp 537.601 | - | 38,48% |
-| **2022-10** | BANDUNG | Rp 2.185.006.450 | 4.836 | 3.594 | Rp 451.821 | - | 26,99% |
-| **2022-10** | SIDOARJO | Rp 1.088.802.900 | 2.884 | 1.822 | Rp 377.532 | - | 13,45% |
-| **2022-11** | MALANG | Rp 1.689.014.000 | 3.530 | 2.271 | Rp 478.474 | -1,03% | 21,86% |
-| **2022-11** | SURABAYA | Rp 2.755.728.900 | 5.469 | 3.614 | Rp 503.882 | -11,54% | 35,67% |
-| **2022-11** | BANDUNG | Rp 2.110.099.300 | 4.493 | 3.372 | Rp 469.642 | -3,43% | 27,31% |
-| **2022-11** | SIDOARJO | Rp 1.170.661.700 | 2.562 | 1.645 | Rp 456.933 | +7,52% | 15,15% |
-| **2022-12** | MALANG | Rp 1.783.965.150 | 3.779 | 2.495 | Rp 472.073 | +5,62% | 20,96% |
-| **2022-12** | SURABAYA | Rp 3.064.977.550 | 5.789 | 3.880 | Rp 529.449 | +11,22% | 36,01% |
-| **2022-12** | BANDUNG | Rp 2.315.223.170 | 4.952 | 3.591 | Rp 467.533 | +9,72% | 27,20% |
-| **2022-12** | SIDOARJO | Rp 1.348.460.300 | 3.014 | 1.901 | Rp 447.399 | +15,19% | 15,84% |
+| Bulan       | Cabang   | Total Revenue (IDR) | Total Invoice | Pasien Unik | ATV (IDR)  | MoM Growth | Kontribusi Cabang |
+| :---------- | :------- | :-----------------: | :-----------: | :---------: | :--------: | :--------: | :---------------: |
+| **2022-10** | MALANG   |  Rp 1.706.668.300   |     3.753     |    2.301    | Rp 454.748 |     -      |      21,08%       |
+| **2022-10** | SURABAYA |  Rp 3.115.396.800   |     5.795     |    3.881    | Rp 537.601 |     -      |      38,48%       |
+| **2022-10** | BANDUNG  |  Rp 2.185.006.450   |     4.836     |    3.594    | Rp 451.821 |     -      |      26,99%       |
+| **2022-10** | SIDOARJO |  Rp 1.088.802.900   |     2.884     |    1.822    | Rp 377.532 |     -      |      13,45%       |
+| **2022-11** | MALANG   |  Rp 1.689.014.000   |     3.530     |    2.271    | Rp 478.474 |   -1,03%   |      21,86%       |
+| **2022-11** | SURABAYA |  Rp 2.755.728.900   |     5.469     |    3.614    | Rp 503.882 |  -11,54%   |      35,67%       |
+| **2022-11** | BANDUNG  |  Rp 2.110.099.300   |     4.493     |    3.372    | Rp 469.642 |   -3,43%   |      27,31%       |
+| **2022-11** | SIDOARJO |  Rp 1.170.661.700   |     2.562     |    1.645    | Rp 456.933 |   +7,52%   |      15,15%       |
+| **2022-12** | MALANG   |  Rp 1.783.965.150   |     3.779     |    2.495    | Rp 472.073 |   +5,62%   |      20,96%       |
+| **2022-12** | SURABAYA |  Rp 3.064.977.550   |     5.789     |    3.880    | Rp 529.449 |  +11,22%   |      36,01%       |
+| **2022-12** | BANDUNG  |  Rp 2.315.223.170   |     4.952     |    3.591    | Rp 467.533 |   +9,72%   |      27,20%       |
+| **2022-12** | SIDOARJO |  Rp 1.348.460.300   |     3.014     |    1.901    | Rp 447.399 |  +15,19%   |      15,84%       |
 
 ---
 
