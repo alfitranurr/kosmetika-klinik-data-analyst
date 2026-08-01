@@ -610,20 +610,20 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans pb-16 selection:bg-indigo-500 selection:text-white">
-      {/* Header & Candidate Info Banner */}
-      <header className="border-b border-slate-800/80 bg-slate-900/90 backdrop-blur-xl sticky top-0 z-50 shadow-2xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      {/* Sticky Header & Filter Toolbar */}
+      <header className="border-b border-slate-800/80 bg-slate-900/95 backdrop-blur-2xl sticky top-0 z-50 shadow-2xl">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-200 bg-clip-text text-transparent">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-200 bg-clip-text text-transparent">
               Executive Business & Patient Migration Dashboard
             </h1>
-            <div className="flex flex-wrap items-center gap-3 mt-2 text-xs sm:text-sm text-slate-400">
-              <span className="px-3 py-1 text-xs font-bold rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-sm">
+            <div className="flex flex-wrap items-center gap-2.5 mt-1 text-xs text-slate-400">
+              <span className="px-2.5 py-0.5 text-[11px] font-bold rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-sm">
                 Technical Test Data Analyst
               </span>
               <span className="text-slate-600">•</span>
-              <div className="flex items-center gap-1.5">
-                <UserCheck className="w-4 h-4 text-emerald-400" />
+              <div className="flex items-center gap-1">
+                <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Kandidat: <strong className="text-slate-100 font-semibold">Al Fitra Nur Ramadhani</strong></span>
               </div>
               <span className="text-slate-600">•</span>
@@ -632,81 +632,83 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 border border-indigo-500/40 text-sm sm:text-base font-extrabold text-white shadow-xl">
-              <span className="w-3 h-3 rounded-full bg-indigo-400 animate-pulse shrink-0"></span>
+            <span className="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl bg-slate-950/80 border border-indigo-500/40 text-xs font-extrabold text-white shadow-lg">
+              <span className="w-2.5 h-2.5 rounded-full bg-indigo-400 animate-pulse shrink-0"></span>
               <span className="tracking-wide">PT Kosmetika Klinik Indonesia</span>
             </span>
           </div>
         </div>
+
+        {/* Integrated Sticky Filter Toolbar */}
+        <div className="border-t border-slate-800/80 bg-slate-950/90 py-2.5">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-slate-200 font-bold text-xs">
+              <Filter className="w-4 h-4 text-indigo-400" />
+              <span>Filter Dashboard Interaktif:</span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5 text-xs">
+              {/* Multi-Select Month Filter */}
+              <MultiSelectDropdown
+                title="Bulan"
+                icon={Calendar}
+                options={[
+                  { value: '2022-10', label: 'Oktober 2022' },
+                  { value: '2022-11', label: 'November 2022' },
+                  { value: '2022-12', label: 'Desember 2022' }
+                ]}
+                selected={selectedMonths}
+                onChange={setSelectedMonths}
+              />
+
+              {/* Multi-Select Branch Filter */}
+              <MultiSelectDropdown
+                title="Cabang"
+                icon={MapPin}
+                options={[
+                  { value: 'SURABAYA', label: 'Cabang Surabaya' },
+                  { value: 'BANDUNG', label: 'Cabang Bandung' },
+                  { value: 'MALANG', label: 'Cabang Malang' },
+                  { value: 'SIDOARJO', label: 'Cabang Sidoarjo' }
+                ]}
+                selected={selectedBranches}
+                onChange={setSelectedBranches}
+              />
+
+              {/* Multi-Select Customer Segment Filter */}
+              <MultiSelectDropdown
+                title="Segmentasi"
+                icon={Users}
+                options={[
+                  { value: 'Repeat Customer', label: 'Repeat Customer' },
+                  { value: 'Reactivated Customer', label: 'Reactivated Customer' },
+                  { value: 'New Customer', label: 'New Customer' },
+                  { value: 'Non Member', label: 'Non Member' }
+                ]}
+                selected={selectedSegments}
+                onChange={setSelectedSegments}
+              />
+
+              {(!selectedMonths.includes('ALL') || !selectedBranches.includes('ALL') || !selectedSegments.includes('ALL')) && (
+                <button 
+                  type="button"
+                  onClick={() => { 
+                    setSelectedMonths(['ALL']); 
+                    setSelectedBranches(['ALL']); 
+                    setSelectedSegments(['ALL']); 
+                  }}
+                  className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold underline underline-offset-4 flex items-center gap-1 ml-1 transition cursor-pointer"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  Reset Filter
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
-        
-        {/* Global Filter Bar */}
-        <section className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-5 shadow-2xl backdrop-blur-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5 text-slate-200 font-bold text-sm">
-            <Filter className="w-5 h-5 text-indigo-400" />
-            <span>Filter Dashboard Interaktif:</span>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 text-sm">
-            {/* Multi-Select Month Filter */}
-            <MultiSelectDropdown
-              title="Bulan"
-              icon={Calendar}
-              options={[
-                { value: '2022-10', label: 'Oktober 2022' },
-                { value: '2022-11', label: 'November 2022' },
-                { value: '2022-12', label: 'Desember 2022' }
-              ]}
-              selected={selectedMonths}
-              onChange={setSelectedMonths}
-            />
-
-            {/* Multi-Select Branch Filter */}
-            <MultiSelectDropdown
-              title="Cabang"
-              icon={MapPin}
-              options={[
-                { value: 'SURABAYA', label: 'Cabang Surabaya' },
-                { value: 'BANDUNG', label: 'Cabang Bandung' },
-                { value: 'MALANG', label: 'Cabang Malang' },
-                { value: 'SIDOARJO', label: 'Cabang Sidoarjo' }
-              ]}
-              selected={selectedBranches}
-              onChange={setSelectedBranches}
-            />
-
-            {/* Multi-Select Customer Segment Filter */}
-            <MultiSelectDropdown
-              title="Segmentasi"
-              icon={Users}
-              options={[
-                { value: 'Repeat Customer', label: 'Repeat Customer' },
-                { value: 'Reactivated Customer', label: 'Reactivated Customer' },
-                { value: 'New Customer', label: 'New Customer' },
-                { value: 'Non Member', label: 'Non Member' }
-              ]}
-              selected={selectedSegments}
-              onChange={setSelectedSegments}
-            />
-
-            {(!selectedMonths.includes('ALL') || !selectedBranches.includes('ALL') || !selectedSegments.includes('ALL')) && (
-              <button 
-                type="button"
-                onClick={() => { 
-                  setSelectedMonths(['ALL']); 
-                  setSelectedBranches(['ALL']); 
-                  setSelectedSegments(['ALL']); 
-                }}
-                className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold underline underline-offset-4 flex items-center gap-1 ml-1 transition cursor-pointer"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                Reset Filter
-              </button>
-            )}
-          </div>
-        </section>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-8">
 
         {/* Executive KPI Summary Cards - Sleek & Compact Alignment */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
