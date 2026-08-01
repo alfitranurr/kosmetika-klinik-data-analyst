@@ -1,12 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import data from './data/clinicData.json';
 import { 
-  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend 
+  BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, LabelList 
 } from 'recharts';
 import { 
   TrendingUp, TrendingDown, DollarSign, Users, Receipt, CreditCard, Filter, Award, 
   CheckCircle2, AlertTriangle, ShieldCheck, FileSpreadsheet, ArrowRight, UserCheck, Stethoscope, PackageCheck, Activity, RefreshCw,
-  ArrowUpDown, ArrowUp, ArrowDown
+  ArrowUpDown, ArrowUp, ArrowDown, Check, ChevronDown, Calendar, MapPin
 } from 'lucide-react';
 
 const SEGMENT_COLORS = {
@@ -18,10 +18,129 @@ const SEGMENT_COLORS = {
 
 const COLORS = ['#6366f1', '#a855f7', '#10b981', '#f59e0b', '#ec4899', '#3b82f6'];
 
+// Multi-select matching helper
+const matchesFilter = (selectedArr, itemVal) => {
+  if (!selectedArr || selectedArr.length === 0 || selectedArr.includes('ALL')) {
+    return true;
+  }
+  return selectedArr.includes(itemVal);
+};
+
+// Interactive Multi-Select Dropdown Component
+function MultiSelectDropdown({ title, icon: Icon, options, selected, onChange }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const isAll = !selected || selected.length === 0 || selected.includes('ALL');
+
+  const handleToggle = (val) => {
+    if (val === 'ALL') {
+      onChange(['ALL']);
+      return;
+    }
+    let current = isAll ? [] : [...selected];
+    if (current.includes(val)) {
+      current = current.filter(x => x !== val);
+    } else {
+      current.push(val);
+    }
+
+    if (current.length === 0 || current.length === options.length) {
+      onChange(['ALL']);
+    } else {
+      onChange(current);
+    }
+  };
+
+  const getLabel = () => {
+    if (isAll) return `Semua ${title}`;
+    if (selected.length === 1) {
+      const opt = options.find(o => o.value === selected[0]);
+      return opt ? opt.label : selected[0];
+    }
+    return `${selected.length} ${title} Dipilih`;
+  };
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all border shadow-md cursor-pointer ${
+          !isAll 
+            ? 'bg-indigo-950/90 border-indigo-500/80 text-white shadow-indigo-500/20' 
+            : 'bg-slate-950 border-slate-700/80 text-slate-200 hover:border-slate-500'
+        }`}
+      >
+        {Icon && <Icon className="w-3.5 h-3.5 text-indigo-400 shrink-0" />}
+        <span className="truncate max-w-[140px]">{getLabel()}</span>
+        {!isAll && (
+          <span className="px-1.5 py-0.2 bg-indigo-500 text-white rounded-full text-[10px] font-black shrink-0">
+            {selected.length}
+          </span>
+        )}
+        <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute left-0 mt-2 z-50 bg-slate-900 border border-slate-700/90 rounded-2xl shadow-2xl p-2 min-w-[200px] backdrop-blur-2xl space-y-1">
+          <button
+            type="button"
+            onClick={() => handleToggle('ALL')}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+              isAll 
+                ? 'bg-indigo-600/30 text-indigo-300 border border-indigo-500/50' 
+                : 'text-slate-300 hover:bg-slate-800'
+            }`}
+          >
+            <span>Semua {title}</span>
+            {isAll && <Check className="w-3.5 h-3.5 text-indigo-400 stroke-[3]" />}
+          </button>
+          
+          <div className="h-px bg-slate-800/80 my-1" />
+
+          {options.map(opt => {
+            const checked = !isAll && selected.includes(opt.value);
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => handleToggle(opt.value)}
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs transition cursor-pointer ${
+                  checked ? 'bg-slate-800 text-white font-bold' : 'text-slate-300 hover:bg-slate-800/60 font-medium'
+                }`}
+              >
+                <div className="flex items-center gap-2 truncate">
+                  <div className={`w-4 h-4 rounded-md border flex items-center justify-center transition ${
+                    checked ? 'bg-indigo-600 border-indigo-500 text-white' : 'border-slate-600 bg-slate-950'
+                  }`}>
+                    {checked && <Check className="w-3 h-3 stroke-[3]" />}
+                  </div>
+                  <span className="truncate">{opt.label}</span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function App() {
-  const [selectedMonth, setSelectedMonth] = useState('ALL');
-  const [selectedBranch, setSelectedBranch] = useState('ALL');
-  const [selectedSegment, setSelectedSegment] = useState('ALL');
+  const [selectedMonths, setSelectedMonths] = useState(['ALL']);
+  const [selectedBranches, setSelectedBranches] = useState(['ALL']);
+  const [selectedSegments, setSelectedSegments] = useState(['ALL']);
   const [activeTab, setActiveTab] = useState('overview');
 
   // Sorting state for Detail Performa Table
@@ -33,14 +152,39 @@ export default function App() {
   // Sorting state for Segment Detail Table (Bagian C)
   const [sortSegmentTable, setSortSegmentTable] = useState({ key: 'revenue', direction: 'desc' });
 
-  // Filtered performance rows
+  // Filtered performance rows (aware of Month, Branch, and Segment)
   const filteredPerf = useMemo(() => {
+    if (!selectedSegments.includes('ALL')) {
+      const map = new Map();
+      data.segments.forEach(item => {
+        if (!matchesFilter(selectedMonths, item.month)) return;
+        if (!matchesFilter(selectedBranches, item.branch_name)) return;
+        if (!matchesFilter(selectedSegments, item.segment)) return;
+        const key = `${item.month}_${item.branch_name}`;
+        const existing = map.get(key) || { 
+          month: item.month, 
+          branch_name: item.branch_name, 
+          invoices: 0, 
+          patients: 0, 
+          revenue: 0 
+        };
+        existing.invoices += item.invoices;
+        existing.patients += item.customers;
+        existing.revenue += item.revenue;
+        map.set(key, existing);
+      });
+      return Array.from(map.values()).map(i => ({
+        ...i,
+        atv: i.invoices > 0 ? Math.round(i.revenue / i.invoices) : 0
+      }));
+    }
+
     return data.performance.filter(item => {
-      if (selectedMonth !== 'ALL' && item.month !== selectedMonth) return false;
-      if (selectedBranch !== 'ALL' && item.branch_name !== selectedBranch) return false;
+      if (!matchesFilter(selectedMonths, item.month)) return false;
+      if (!matchesFilter(selectedBranches, item.branch_name)) return false;
       return true;
     });
-  }, [selectedMonth, selectedBranch]);
+  }, [selectedMonths, selectedBranches, selectedSegments]);
 
   // Interactive Sorted Performance Data
   const sortedPerfData = useMemo(() => {
@@ -66,23 +210,98 @@ export default function App() {
     });
   };
 
-  // Doctors with True Pre-Calculated Revenue Rank
-  const doctorsWithRank = useMemo(() => {
-    const sortedByRev = [...data.doctors].sort((a, b) => b.revenue - a.revenue);
-    const rankMap = new Map();
-    sortedByRev.forEach((doc, idx) => {
-      rankMap.set(doc.alias, idx + 1);
+  // Filtered & Aggregated Top 10 Treatments (Aware of Month, Branch & Segment)
+  const topTreatments = useMemo(() => {
+    const raw = data.treatments_granular || data.top_treatments || [];
+    if (!data.treatments_granular) return data.top_treatments;
+
+    const map = new Map();
+    raw.forEach(item => {
+      if (!matchesFilter(selectedMonths, item.month)) return;
+      if (!matchesFilter(selectedBranches, item.branch_name)) return;
+      if (!matchesFilter(selectedSegments, item.segment)) return;
+
+      const existing = map.get(item.name) || { name: item.name, count: 0, qty: 0, revenue: 0 };
+      existing.count += item.count;
+      existing.qty += item.qty;
+      existing.revenue += item.revenue;
+      map.set(item.name, existing);
     });
-    return data.doctors.map(doc => ({
+
+    return Array.from(map.values())
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 10);
+  }, [selectedMonths, selectedBranches, selectedSegments]);
+
+  // Filtered & Aggregated Top 10 Products (Aware of Month, Branch & Segment)
+  const topProducts = useMemo(() => {
+    const raw = data.products_granular || data.top_products || [];
+    if (!data.products_granular) return data.top_products;
+
+    const map = new Map();
+    raw.forEach(item => {
+      if (!matchesFilter(selectedMonths, item.month)) return;
+      if (!matchesFilter(selectedBranches, item.branch_name)) return;
+      if (!matchesFilter(selectedSegments, item.segment)) return;
+
+      const existing = map.get(item.name) || { name: item.name, qty: 0, revenue: 0 };
+      existing.qty += item.qty;
+      existing.revenue += item.revenue;
+      map.set(item.name, existing);
+    });
+
+    return Array.from(map.values())
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 10);
+  }, [selectedMonths, selectedBranches, selectedSegments]);
+
+  // Filtered & Aggregated Doctors with True Rank (Aware of Month, Branch & Segment)
+  const filteredDoctors = useMemo(() => {
+    const raw = data.doctors_granular || data.doctors || [];
+    if (!data.doctors_granular) {
+      const sortedByRev = [...data.doctors].sort((a, b) => b.revenue - a.revenue);
+      const rankMap = new Map();
+      sortedByRev.forEach((doc, idx) => {
+        rankMap.set(doc.alias, idx + 1);
+      });
+      return data.doctors.map(doc => ({
+        ...doc,
+        rank: rankMap.get(doc.alias)
+      }));
+    }
+
+    const map = new Map();
+    raw.forEach(item => {
+      if (!matchesFilter(selectedMonths, item.month)) return;
+      if (!matchesFilter(selectedBranches, item.branch_name)) return;
+      if (!matchesFilter(selectedSegments, item.segment)) return;
+
+      const key = item.id || item.alias;
+      const existing = map.get(key) || { 
+        id: item.id, 
+        alias: item.alias, 
+        branch: item.branch, 
+        transactions: 0, 
+        revenue: 0 
+      };
+      existing.transactions += item.transactions;
+      existing.revenue += item.revenue;
+      map.set(key, existing);
+    });
+
+    const list = Array.from(map.values()).map(doc => ({
       ...doc,
-      rank: rankMap.get(doc.alias)
+      atv: doc.transactions > 0 ? Math.round(doc.revenue / doc.transactions) : 0
     }));
-  }, []);
+
+    list.sort((a, b) => b.revenue - a.revenue);
+    return list.map((doc, idx) => ({ ...doc, rank: idx + 1 }));
+  }, [selectedMonths, selectedBranches, selectedSegments]);
 
   // Interactive Sorted Doctor Performance Data
   const sortedDocData = useMemo(() => {
-    if (!sortDoc.key) return doctorsWithRank;
-    return [...doctorsWithRank].sort((a, b) => {
+    if (!sortDoc.key) return filteredDoctors;
+    return [...filteredDoctors].sort((a, b) => {
       let aVal = a[sortDoc.key];
       let bVal = b[sortDoc.key];
       if (typeof aVal === 'string') {
@@ -92,23 +311,23 @@ export default function App() {
       }
       return sortDoc.direction === 'asc' ? aVal - bVal : bVal - aVal;
     });
-  }, [doctorsWithRank, sortDoc]);
+  }, [filteredDoctors, sortDoc]);
 
   const handleSortDoc = (key) => {
     setSortDoc(prev => {
       if (prev.key === key) {
         return { key, direction: prev.direction === 'asc' ? 'desc' : 'asc' };
       }
-      return { key, direction: (key === 'rank' || typeof doctorsWithRank[0]?.[key] === 'string') ? 'asc' : 'desc' };
+      return { key, direction: (key === 'rank' || typeof filteredDoctors[0]?.[key] === 'string') ? 'asc' : 'desc' };
     });
   };
 
   // Filtered & Sorted Customer Segment Detail Data (Bagian 1C)
   const sortedSegmentDetail = useMemo(() => {
     const list = data.segments.filter(item => {
-      if (selectedMonth !== 'ALL' && item.month !== selectedMonth) return false;
-      if (selectedBranch !== 'ALL' && item.branch_name !== selectedBranch) return false;
-      if (selectedSegment !== 'ALL' && item.segment !== selectedSegment) return false;
+      if (!matchesFilter(selectedMonths, item.month)) return false;
+      if (!matchesFilter(selectedBranches, item.branch_name)) return false;
+      if (!matchesFilter(selectedSegments, item.segment)) return false;
       return true;
     });
 
@@ -128,7 +347,7 @@ export default function App() {
       }
       return sortSegmentTable.direction === 'asc' ? aVal - bVal : bVal - aVal;
     });
-  }, [selectedMonth, selectedBranch, selectedSegment, sortSegmentTable]);
+  }, [selectedMonths, selectedBranches, selectedSegments, sortSegmentTable]);
 
   const handleSortSegmentTable = (key) => {
     setSortSegmentTable(prev => {
@@ -139,32 +358,70 @@ export default function App() {
     });
   };
 
-  // Aggregate KPI summary
+  // Aggregate KPI summary (Aware of Month, Branch & Segment)
   const kpis = useMemo(() => {
     const totalRev = filteredPerf.reduce((sum, i) => sum + i.revenue, 0);
     const totalInvoices = filteredPerf.reduce((sum, i) => sum + i.invoices, 0);
-    const totalPatients = (selectedMonth === 'ALL' && selectedBranch === 'ALL') ? 21993 : filteredPerf.reduce((sum, i) => sum + i.patients, 0);
+    const isAllFilters = selectedMonths.includes('ALL') && selectedBranches.includes('ALL') && selectedSegments.includes('ALL');
+    const totalPatients = isAllFilters 
+      ? 21993 
+      : filteredPerf.reduce((sum, i) => sum + i.patients, 0);
     const atv = totalInvoices > 0 ? totalRev / totalInvoices : 0;
     return { totalRev, totalInvoices, totalPatients, atv };
-  }, [filteredPerf, selectedMonth, selectedBranch]);
+  }, [filteredPerf, selectedMonths, selectedBranches, selectedSegments]);
 
-  // Transaction Types Data with calculated percentages (Bagian 1D)
+  // Transaction Types Data with calculated percentages (Aware of Month, Branch & Segment)
   const txTypeData = useMemo(() => {
-    const totalRev = data.tx_types.reduce((s, i) => s + i.revenue, 0);
-    const totalInv = data.tx_types.reduce((s, i) => s + i.invoices, 0);
+    const raw = data.tx_types_granular || data.tx_types || [];
     const colors = {
       'Product Only (Obat)': '#3b82f6', // Blue
       'Mixed (Campuran)': '#f59e0b',     // Amber / Gold
       'Treatment Only': '#10b981',       // Emerald
       'Other': '#64748b'                 // Slate
     };
-    return data.tx_types.map(item => ({
-      ...item,
-      revPercentage: totalRev > 0 ? ((item.revenue / totalRev) * 100).toFixed(1) : 0,
-      invPercentage: totalInv > 0 ? ((item.invoices / totalInv) * 100).toFixed(1) : 0,
-      fill: colors[item.label] || '#6366f1'
-    }));
-  }, []);
+
+    if (data.tx_types_granular) {
+      const map = new Map();
+      raw.forEach(item => {
+        if (!matchesFilter(selectedMonths, item.month)) return;
+        if (!matchesFilter(selectedBranches, item.branch_name)) return;
+        if (!matchesFilter(selectedSegments, item.segment)) return;
+
+        const existing = map.get(item.label) || { label: item.label, invoices: 0, revenue: 0 };
+        existing.invoices += item.invoices;
+        existing.revenue += item.revenue;
+        map.set(item.label, existing);
+      });
+
+      const order = ['Product Only (Obat)', 'Treatment Only', 'Mixed (Campuran)', 'Other'];
+      const aggregated = order.map(lbl => {
+        const found = map.get(lbl) || { label: lbl, invoices: 0, revenue: 0 };
+        return {
+          ...found,
+          atv: found.invoices > 0 ? Math.round(found.revenue / found.invoices) : 0
+        };
+      });
+
+      const totalRev = aggregated.reduce((s, i) => s + i.revenue, 0);
+      const totalInv = aggregated.reduce((s, i) => s + i.invoices, 0);
+
+      return aggregated.map(item => ({
+        ...item,
+        revPercentage: totalRev > 0 ? ((item.revenue / totalRev) * 100).toFixed(1) : '0.0',
+        invPercentage: totalInv > 0 ? ((item.invoices / totalInv) * 100).toFixed(1) : '0.0',
+        fill: colors[item.label] || '#6366f1'
+      }));
+    } else {
+      const totalRev = data.tx_types.reduce((s, i) => s + i.revenue, 0);
+      const totalInv = data.tx_types.reduce((s, i) => s + i.invoices, 0);
+      return data.tx_types.map(item => ({
+        ...item,
+        revPercentage: totalRev > 0 ? ((item.revenue / totalRev) * 100).toFixed(1) : '0.0',
+        invPercentage: totalInv > 0 ? ((item.invoices / totalInv) * 100).toFixed(1) : '0.0',
+        fill: colors[item.label] || '#6366f1'
+      }));
+    }
+  }, [selectedMonths, selectedBranches, selectedSegments]);
 
   // Format currency IDR
   const formatIDR = (val) => {
@@ -175,14 +432,18 @@ export default function App() {
 
   const formatNumber = (val) => Math.round(val).toLocaleString('id-ID');
 
-  // Performance chart data grouped by month
+  // Performance chart data grouped by month (Aware of Branch & Segment)
   const monthlyTrendData = useMemo(() => {
     const months = ['2022-10', '2022-11', '2022-12'];
     return months.map(m => {
-      const items = data.performance.filter(i => i.month === m && (selectedBranch === 'ALL' || i.branch_name === selectedBranch));
+      const items = data.segments ? data.segments.filter(i => 
+        i.month === m && 
+        matchesFilter(selectedBranches, i.branch_name) &&
+        matchesFilter(selectedSegments, i.segment)
+      ) : [];
       const rev = items.reduce((s, i) => s + i.revenue, 0);
       const inv = items.reduce((s, i) => s + i.invoices, 0);
-      const pat = items.reduce((s, i) => s + i.patients, 0);
+      const pat = items.reduce((s, i) => s + i.customers, 0);
       return {
         monthLabel: m === '2022-10' ? 'Oktober' : m === '2022-11' ? 'November' : 'Desember',
         Revenue: rev,
@@ -191,13 +452,17 @@ export default function App() {
         ATV: inv > 0 ? Math.round(rev / inv) : 0
       };
     });
-  }, [selectedBranch]);
+  }, [selectedBranches, selectedSegments]);
 
-  // Branch breakdown comparison data
+  // Branch breakdown comparison data (Aware of Month & Segment)
   const branchComparisonData = useMemo(() => {
     const branches = ['SURABAYA', 'BANDUNG', 'MALANG', 'SIDOARJO'];
     return branches.map(b => {
-      const items = data.performance.filter(i => i.branch_name === b && (selectedMonth === 'ALL' || i.month === selectedMonth));
+      const items = data.segments ? data.segments.filter(i => 
+        i.branch_name === b && 
+        matchesFilter(selectedMonths, i.month) &&
+        matchesFilter(selectedSegments, i.segment)
+      ) : [];
       const rev = items.reduce((s, i) => s + i.revenue, 0);
       const inv = items.reduce((s, i) => s + i.invoices, 0);
       return {
@@ -207,15 +472,24 @@ export default function App() {
         ATV: inv > 0 ? Math.round(rev / inv) : 0
       };
     });
-  }, [selectedMonth]);
+  }, [selectedMonths, selectedSegments]);
 
-  // Customer Segment Summary with Percentages & Color Mapping
+  // DESC sorted branch data for Revenue & ATV BarCharts
+  const branchRevenueSortedData = useMemo(() => {
+    return [...branchComparisonData].sort((a, b) => b.Revenue - a.Revenue);
+  }, [branchComparisonData]);
+
+  const branchAtvSortedData = useMemo(() => {
+    return [...branchComparisonData].sort((a, b) => b.ATV - a.ATV);
+  }, [branchComparisonData]);
+
+  // Customer Segment Summary with Percentages & Color Mapping (Aware of Month & Branch)
   const segmentData = useMemo(() => {
     const segs = ['Repeat Customer', 'Reactivated Customer', 'New Customer', 'Non Member'];
     const rawItems = segs.map(s => {
       const items = data.segments.filter(i => i.segment === s && 
-        (selectedMonth === 'ALL' || i.month === selectedMonth) && 
-        (selectedBranch === 'ALL' || i.branch_name === selectedBranch));
+        matchesFilter(selectedMonths, i.month) && 
+        matchesFilter(selectedBranches, i.branch_name));
       const rev = items.reduce((sum, i) => sum + i.revenue, 0);
       const inv = items.reduce((sum, i) => sum + i.invoices, 0);
       return {
@@ -230,9 +504,75 @@ export default function App() {
     const totalSegRev = rawItems.reduce((s, i) => s + i.Revenue, 0);
     return rawItems.map(item => ({
       ...item,
-      percentage: totalSegRev > 0 ? ((item.Revenue / totalSegRev) * 100).toFixed(1) : 0
+      percentage: totalSegRev > 0 ? ((item.Revenue / totalSegRev) * 100).toFixed(1) : '0.0'
     }));
-  }, [selectedMonth, selectedBranch]);
+  }, [selectedMonths, selectedBranches]);
+
+  // DESC sorted segment data for ATV BarChart & Revenue Donut
+  const segmentAtvSortedData = useMemo(() => {
+    return [...segmentData].sort((a, b) => b.ATV - a.ATV);
+  }, [segmentData]);
+
+  const segmentRevenueSortedData = useMemo(() => {
+    return [...segmentData].sort((a, b) => b.Revenue - a.Revenue);
+  }, [segmentData]);
+
+  // Doctor summary aggregated by Primary Branch (Aware of Month, Branch, Segment)
+  const doctorBranchSummary = useMemo(() => {
+    const branches = ['SURABAYA', 'BANDUNG', 'MALANG', 'SIDOARJO'];
+    return branches.map(b => {
+      const docsInBranch = filteredDoctors.filter(d => d.branch === b);
+      const totalRev = docsInBranch.reduce((s, d) => s + d.revenue, 0);
+      const totalTx = docsInBranch.reduce((s, d) => s + d.transactions, 0);
+      return {
+        branch: b,
+        Revenue: totalRev,
+        Transactions: totalTx,
+        DoctorCount: docsInBranch.length,
+        ATV: totalTx > 0 ? Math.round(totalRev / totalTx) : 0
+      };
+    }).filter(b => matchesFilter(selectedBranches, b.branch))
+      .sort((a, b) => b.Revenue - a.Revenue);
+  }, [filteredDoctors, selectedBranches]);
+
+  // Top 10 Doctors data for BarChart (Aware of Month, Branch, Segment)
+  const top10DoctorsData = useMemo(() => {
+    return filteredDoctors.slice(0, 10).map(d => ({
+      alias: d.alias,
+      branch: d.branch,
+      Revenue: d.revenue,
+      Transactions: d.transactions,
+      ATV: d.atv
+    }));
+  }, [filteredDoctors]);
+
+  // Treatment vs Skincare Product Breakdown Per Branch (Aware of Month, Branch & Segment)
+  const branchTreatmentVsProductData = useMemo(() => {
+    const branches = ['SURABAYA', 'BANDUNG', 'MALANG', 'SIDOARJO'];
+    const trtdRaw = data.treatments_granular || [];
+    const prddRaw = data.products_granular || [];
+
+    return branches.map(b => {
+      const trtItems = trtdRaw.filter(i => i.branch_name === b && 
+        matchesFilter(selectedMonths, i.month) && 
+        matchesFilter(selectedSegments, i.segment));
+      const prdItems = prddRaw.filter(i => i.branch_name === b && 
+        matchesFilter(selectedMonths, i.month) && 
+        matchesFilter(selectedSegments, i.segment));
+
+      const trtRev = trtItems.reduce((sum, i) => sum + i.revenue, 0);
+      const prdRev = prdItems.reduce((sum, i) => sum + i.revenue, 0);
+      const totalRev = trtRev + prdRev;
+
+      return {
+        branch: b,
+        'Treatment': trtRev,
+        'Skincare Product': prdRev,
+        TotalRevenue: totalRev
+      };
+    }).filter(b => matchesFilter(selectedBranches, b.branch))
+      .sort((a, b) => b.TotalRevenue - a.TotalRevenue);
+  }, [selectedMonths, selectedBranches, selectedSegments]);
 
   // Custom Donut Label
   const renderCustomizedPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
@@ -309,58 +649,57 @@ export default function App() {
             <span>Filter Dashboard Interaktif:</span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 text-sm">
-            {/* Month Filter */}
-            <div className="flex items-center gap-2">
-              <label className="text-xs font-medium text-slate-400">Bulan:</label>
-              <select 
-                value={selectedMonth} 
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition cursor-pointer"
-              >
-                <option value="ALL">Semua Q4 (Oktober - Desember)</option>
-                <option value="2022-10">Oktober 2022</option>
-                <option value="2022-11">November 2022</option>
-                <option value="2022-12">Desember 2022</option>
-              </select>
-            </div>
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            {/* Multi-Select Month Filter */}
+            <MultiSelectDropdown
+              title="Bulan"
+              icon={Calendar}
+              options={[
+                { value: '2022-10', label: 'Oktober 2022' },
+                { value: '2022-11', label: 'November 2022' },
+                { value: '2022-12', label: 'Desember 2022' }
+              ]}
+              selected={selectedMonths}
+              onChange={setSelectedMonths}
+            />
 
-            {/* Branch Filter */}
-            <div className="flex items-center gap-2">
-              <label className="text-xs font-medium text-slate-400">Cabang:</label>
-              <select 
-                value={selectedBranch} 
-                onChange={(e) => setSelectedBranch(e.target.value)}
-                className="bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition cursor-pointer"
-              >
-                <option value="ALL">Semua Cabang (1-4)</option>
-                <option value="MALANG">Cabang Malang</option>
-                <option value="SURABAYA">Cabang Surabaya</option>
-                <option value="BANDUNG">Cabang Bandung</option>
-                <option value="SIDOARJO">Cabang Sidoarjo</option>
-              </select>
-            </div>
+            {/* Multi-Select Branch Filter */}
+            <MultiSelectDropdown
+              title="Cabang"
+              icon={MapPin}
+              options={[
+                { value: 'SURABAYA', label: 'Cabang Surabaya' },
+                { value: 'BANDUNG', label: 'Cabang Bandung' },
+                { value: 'MALANG', label: 'Cabang Malang' },
+                { value: 'SIDOARJO', label: 'Cabang Sidoarjo' }
+              ]}
+              selected={selectedBranches}
+              onChange={setSelectedBranches}
+            />
 
-            {/* Customer Segment Filter */}
-            <div className="flex items-center gap-2">
-              <label className="text-xs font-medium text-slate-400">Segmentasi:</label>
-              <select 
-                value={selectedSegment} 
-                onChange={(e) => setSelectedSegment(e.target.value)}
-                className="bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs font-medium text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition cursor-pointer"
-              >
-                <option value="ALL">Semua Kategori Customer</option>
-                <option value="Repeat Customer">Repeat Customer</option>
-                <option value="Reactivated Customer">Reactivated Customer</option>
-                <option value="New Customer">New Customer</option>
-                <option value="Non Member">Non Member</option>
-              </select>
-            </div>
+            {/* Multi-Select Customer Segment Filter */}
+            <MultiSelectDropdown
+              title="Segmentasi"
+              icon={Users}
+              options={[
+                { value: 'Repeat Customer', label: 'Repeat Customer' },
+                { value: 'Reactivated Customer', label: 'Reactivated Customer' },
+                { value: 'New Customer', label: 'New Customer' },
+                { value: 'Non Member', label: 'Non Member' }
+              ]}
+              selected={selectedSegments}
+              onChange={setSelectedSegments}
+            />
 
-            {(selectedMonth !== 'ALL' || selectedBranch !== 'ALL' || selectedSegment !== 'ALL') && (
+            {(!selectedMonths.includes('ALL') || !selectedBranches.includes('ALL') || !selectedSegments.includes('ALL')) && (
               <button 
-                onClick={() => { setSelectedMonth('ALL'); setSelectedBranch('ALL'); setSelectedSegment('ALL'); }}
-                className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold underline underline-offset-4 flex items-center gap-1 ml-2 transition"
+                type="button"
+                onClick={() => { 
+                  setSelectedMonths(['ALL']); 
+                  setSelectedBranches(['ALL']); 
+                  setSelectedSegments(['ALL']); 
+                }}
+                className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold underline underline-offset-4 flex items-center gap-1 ml-1 transition cursor-pointer"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 Reset Filter
@@ -572,7 +911,7 @@ export default function App() {
                 
                 <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={monthlyTrendData} margin={{ top: 10, right: 20, left: 15, bottom: 10 }}>
+                    <BarChart data={monthlyTrendData} margin={{ top: 25, right: 20, left: 15, bottom: 10 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                       <XAxis 
                         dataKey="monthLabel" 
@@ -593,7 +932,17 @@ export default function App() {
                         itemStyle={{ color: '#38bdf8' }}
                         labelStyle={{ color: '#ffffff', fontWeight: 'bold' }}
                       />
-                      <Bar dataKey="Revenue" fill="#6366f1" radius={[8, 8, 0, 0]} />
+                      <Bar dataKey="Revenue" fill="#6366f1" radius={[8, 8, 0, 0]}>
+                        <LabelList 
+                          dataKey="Revenue" 
+                          position="top" 
+                          formatter={(val) => val >= 1e9 ? `Rp ${(val / 1e9).toFixed(2)} M` : `Rp ${(val / 1e6).toFixed(1)} Jt`} 
+                          fill="#a5b4fc" 
+                          fontSize={11} 
+                          fontWeight="bold" 
+                          offset={8}
+                        />
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -614,7 +963,7 @@ export default function App() {
                 
                 <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={branchComparisonData} layout="vertical" margin={{ top: 10, right: 30, left: 40, bottom: 10 }}>
+                    <BarChart data={branchRevenueSortedData} layout="vertical" margin={{ top: 10, right: 90, left: 40, bottom: 10 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                       <XAxis 
                         type="number" 
@@ -637,7 +986,112 @@ export default function App() {
                         itemStyle={{ color: '#34d399' }}
                         labelStyle={{ color: '#ffffff', fontWeight: 'bold' }}
                       />
-                      <Bar dataKey="Revenue" fill="#10b981" radius={[0, 8, 8, 0]} />
+                      <Bar dataKey="Revenue" fill="#10b981" radius={[0, 8, 8, 0]}>
+                        <LabelList 
+                          dataKey="Revenue" 
+                          position="right" 
+                          formatter={(val) => val >= 1e9 ? `Rp ${(val / 1e9).toFixed(2)} M` : `Rp ${(val / 1e6).toFixed(1)} Jt`} 
+                          fill="#34d399" 
+                          fontSize={11} 
+                          fontWeight="bold" 
+                          offset={8}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Chart 3: Monthly Volume & Patients Line Chart */}
+              <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2 pb-3 border-b border-slate-800/80 min-h-[52px] gap-2">
+                    <h3 className="text-xs sm:text-sm md:text-base font-extrabold text-white flex items-center gap-2 leading-snug">
+                      <Activity className="w-5 h-5 text-purple-400 shrink-0" />
+                      <span>Tren Volume Transaksi & Pasien Unik <span className="text-slate-400 font-medium text-xs sm:text-sm">(Q4 2022)</span></span>
+                    </h3>
+                    <span className="text-xs bg-purple-500/20 text-purple-300 px-2.5 py-1 rounded-full border border-purple-500/30 font-bold shrink-0">Volume</span>
+                  </div>
+                  <p className="text-xs text-slate-400 mb-6 truncate">Kenaikan volume invoice & jumlah pasien unik per bulan</p>
+                </div>
+                
+                <div className="h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={monthlyTrendData} margin={{ top: 10, right: 20, left: 15, bottom: 10 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                      <XAxis 
+                        dataKey="monthLabel" 
+                        stroke="#ffffff" 
+                        strokeWidth={2}
+                        tick={{ fill: '#ffffff', fontSize: 12, fontWeight: 'bold' }} 
+                      />
+                      <YAxis 
+                        stroke="#ffffff" 
+                        strokeWidth={2}
+                        tick={{ fill: '#ffffff', fontSize: 11, fontWeight: 'bold' }} 
+                        tickFormatter={(val) => formatNumber(val)} 
+                        width={60} 
+                      />
+                      <Tooltip 
+                        formatter={(val, name) => [formatNumber(val), name]}
+                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#ffffff' }}
+                        labelStyle={{ color: '#ffffff', fontWeight: 'bold' }}
+                      />
+                      <Legend wrapperStyle={{ paddingTop: '10px' }} />
+                      <Line type="monotone" dataKey="Invoices" stroke="#a855f7" strokeWidth={3} dot={{ r: 5 }} activeDot={{ r: 7 }} name="Jumlah Invoice" />
+                      <Line type="monotone" dataKey="Patients" stroke="#10b981" strokeWidth={3} dot={{ r: 5 }} activeDot={{ r: 7 }} name="Pasien Unik" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Chart 4: Branch ATV Comparison Bar Chart */}
+              <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2 pb-3 border-b border-slate-800/80 min-h-[52px] gap-2">
+                    <h3 className="text-xs sm:text-sm md:text-base font-extrabold text-white flex items-center gap-2 leading-snug">
+                      <CreditCard className="w-5 h-5 text-amber-400 shrink-0" />
+                      <span>Profil ATV (Rata-Rata Belanja) Per Cabang</span>
+                    </h3>
+                    <span className="text-xs bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full border border-amber-500/30 font-bold shrink-0">ATV Cabang</span>
+                  </div>
+                  <p className="text-xs text-slate-400 mb-6 truncate">Surabaya tertinggi (Rp 524rb), Sidoarjo terendah (Rp 426rb)</p>
+                </div>
+                
+                <div className="h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={branchAtvSortedData} margin={{ top: 25, right: 20, left: 15, bottom: 10 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                      <XAxis 
+                        dataKey="branch" 
+                        stroke="#ffffff" 
+                        strokeWidth={2}
+                        tick={{ fill: '#ffffff', fontSize: 12, fontWeight: 'bold' }} 
+                      />
+                      <YAxis 
+                        stroke="#ffffff" 
+                        strokeWidth={2}
+                        tick={{ fill: '#ffffff', fontSize: 11, fontWeight: 'bold' }} 
+                        tickFormatter={(val) => val === 0 ? 'Rp 0' : `Rp ${(val / 1e3).toFixed(0)} rb`} 
+                        width={75} 
+                      />
+                      <Tooltip 
+                        formatter={(val) => [`Rp ${Math.round(val).toLocaleString('id-ID')}`, 'Rata-Rata ATV']}
+                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#ffffff' }}
+                        itemStyle={{ color: '#f59e0b' }}
+                        labelStyle={{ color: '#ffffff', fontWeight: 'bold' }}
+                      />
+                      <Bar dataKey="ATV" fill="#f59e0b" radius={[8, 8, 0, 0]}>
+                        <LabelList 
+                          dataKey="ATV" 
+                          position="top" 
+                          formatter={(val) => val >= 1e3 ? `Rp ${Math.round(val / 1e3)}rb` : `Rp ${val}`} 
+                          fill="#fde047" 
+                          fontSize={11} 
+                          fontWeight="bold" 
+                          offset={8}
+                        />
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -814,7 +1268,7 @@ export default function App() {
                   
                   <div className="h-72">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={segmentData} margin={{ top: 15, right: 20, left: 15, bottom: 45 }}>
+                      <BarChart data={segmentAtvSortedData} margin={{ top: 25, right: 20, left: 15, bottom: 45 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                         <XAxis 
                           dataKey="name" 
@@ -841,6 +1295,15 @@ export default function App() {
                           {segmentData.map((entry, index) => (
                             <Cell key={`bar-${index}`} fill={entry.fill} />
                           ))}
+                          <LabelList 
+                            dataKey="ATV" 
+                            position="top" 
+                            formatter={(val) => val >= 1e3 ? `Rp ${Math.round(val / 1e3)}rb` : `Rp ${val}`} 
+                            fill="#cbd5e1" 
+                            fontSize={11} 
+                            fontWeight="bold" 
+                            offset={8}
+                          />
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
@@ -1003,56 +1466,134 @@ export default function App() {
 
         {/* Tab 3: Top Treatments & Products */}
         {activeTab === 'treatments' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl">
-              <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800/80">
-                <h3 className="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
-                  <PackageCheck className="w-5 h-5 text-indigo-400" />
-                  Top 10 Treatment Medis (Berdasarkan Revenue)
-                </h3>
-                <span className="text-xs bg-indigo-500/20 text-indigo-300 px-2.5 py-1 rounded-full border border-indigo-500/30 font-bold shrink-0">Treatment</span>
+          <div className="space-y-6">
+            {/* Visual Chart: Per Cabang Treatment vs Product Revenue Breakdown */}
+            <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2 pb-3 border-b border-slate-800/80 min-h-[52px] gap-2">
+                  <h3 className="text-xs sm:text-sm md:text-base font-extrabold text-white flex items-center gap-2 leading-snug">
+                    <Award className="w-5 h-5 text-emerald-400 shrink-0" />
+                    <span>Kontribusi Revenue: Treatment Medis vs Skincare Product Per Cabang</span>
+                  </h3>
+                  <span className="text-xs bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-500/30 font-bold shrink-0">Per Cabang</span>
+                </div>
+                <p className="text-xs text-slate-400 mb-6 truncate">Perbandingan total omset layanan Treatment Medis dan Penjualan Skincare Homecare di tiap cabang (DESC)</p>
               </div>
-              <div className="space-y-3">
-                {data.top_treatments.map((t, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/80 hover:border-indigo-500/40 transition">
-                    <div className="flex items-center gap-3">
-                      <span className="w-7 h-7 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-extrabold flex items-center justify-center border border-indigo-500/30 shrink-0">
-                        {idx + 1}
-                      </span>
-                      <div>
-                        <p className="font-bold text-sm text-slate-100 tracking-wide">{t.name}</p>
-                        <p className="text-xs text-slate-400">{t.count} transaksi | {t.qty} unit</p>
-                      </div>
-                    </div>
-                    <span className="font-extrabold text-emerald-400 text-sm shrink-0 ml-2">{formatIDR(t.revenue)}</span>
-                  </div>
-                ))}
+              
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={branchTreatmentVsProductData} margin={{ top: 25, right: 20, left: 15, bottom: 10 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                    <XAxis 
+                      dataKey="branch" 
+                      stroke="#ffffff" 
+                      strokeWidth={2}
+                      tick={{ fill: '#ffffff', fontSize: 12, fontWeight: 'bold' }} 
+                    />
+                    <YAxis 
+                      stroke="#ffffff" 
+                      strokeWidth={2}
+                      tick={{ fill: '#ffffff', fontSize: 11, fontWeight: 'bold' }} 
+                      tickFormatter={(val) => val === 0 ? 'Rp 0' : `Rp ${(val / 1e9).toFixed(1)} M`} 
+                      width={80} 
+                    />
+                    <Tooltip 
+                      formatter={(val, name) => [`Rp ${val.toLocaleString('id-ID')}`, name]}
+                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#ffffff' }}
+                      labelStyle={{ color: '#ffffff', fontWeight: 'bold' }}
+                    />
+                    <Legend wrapperStyle={{ paddingTop: '10px' }} />
+                    <Bar dataKey="Treatment" fill="#6366f1" radius={[8, 8, 0, 0]}>
+                      <LabelList 
+                        dataKey="Treatment" 
+                        position="top" 
+                        formatter={(val) => val >= 1e9 ? `Rp ${(val / 1e9).toFixed(2)} M` : `Rp ${(val / 1e6).toFixed(1)} Jt`} 
+                        fill="#a5b4fc" 
+                        fontSize={10} 
+                        fontWeight="bold" 
+                        offset={8}
+                      />
+                    </Bar>
+                    <Bar dataKey="Skincare Product" fill="#a855f7" radius={[8, 8, 0, 0]}>
+                      <LabelList 
+                        dataKey="Skincare Product" 
+                        position="top" 
+                        formatter={(val) => val >= 1e9 ? `Rp ${(val / 1e9).toFixed(2)} M` : `Rp ${(val / 1e6).toFixed(1)} Jt`} 
+                        fill="#d8b4fe" 
+                        fontSize={10} 
+                        fontWeight="bold" 
+                        offset={8}
+                      />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </div>
 
-            <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl">
-              <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800/80">
-                <h3 className="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
-                  <PackageCheck className="w-5 h-5 text-purple-400" />
-                  Top 10 Skincare Homecare (Berdasarkan Revenue)
-                </h3>
-                <span className="text-xs bg-purple-500/20 text-purple-300 px-2.5 py-1 rounded-full border border-purple-500/30 font-bold shrink-0">Skincare</span>
-              </div>
-              <div className="space-y-3">
-                {data.top_products.map((p, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/80 hover:border-emerald-500/40 transition">
-                    <div className="flex items-center gap-3">
-                      <span className="w-7 h-7 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-extrabold flex items-center justify-center border border-emerald-500/30 shrink-0">
-                        {idx + 1}
-                      </span>
-                      <div>
-                        <p className="font-bold text-sm text-slate-100 tracking-wide">{p.name}</p>
-                        <p className="text-xs text-slate-400">{formatNumber(p.qty)} unit terjual</p>
+            {/* Detailed Top 10 Ranking Cards */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800/80 min-h-[52px] gap-2">
+                  <h3 className="text-xs sm:text-sm md:text-base font-extrabold text-white flex items-center gap-2 leading-snug">
+                    <PackageCheck className="w-5 h-5 text-indigo-400 shrink-0" />
+                    <span>Top 10 Treatment Medis <span className="text-slate-400 font-medium text-xs sm:text-sm">(Rincian Transaksi)</span></span>
+                  </h3>
+                  <span className="text-xs bg-indigo-500/20 text-indigo-300 px-2.5 py-1 rounded-full border border-indigo-500/30 font-bold shrink-0">Treatment</span>
+                </div>
+                <div className="space-y-3">
+                  {topTreatments.length > 0 ? (
+                    topTreatments.map((t, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/80 hover:border-indigo-500/40 transition">
+                        <div className="flex items-center gap-3">
+                          <span className="w-7 h-7 rounded-full bg-indigo-500/20 text-indigo-400 text-xs font-extrabold flex items-center justify-center border border-indigo-500/30 shrink-0">
+                            {idx + 1}
+                          </span>
+                          <div>
+                            <p className="font-bold text-sm text-slate-100 tracking-wide">{t.name}</p>
+                            <p className="text-xs text-slate-400">{formatNumber(t.count)} transaksi | {formatNumber(t.qty)} unit</p>
+                          </div>
+                        </div>
+                        <span className="font-extrabold text-emerald-400 text-sm shrink-0 ml-2">{formatIDR(t.revenue)}</span>
                       </div>
+                    ))
+                  ) : (
+                    <div className="p-8 text-center text-slate-500">
+                      Tidak ada data treatment yang sesuai dengan filter.
                     </div>
-                    <span className="font-extrabold text-emerald-400 text-sm shrink-0 ml-2">{formatIDR(p.revenue)}</span>
-                  </div>
-                ))}
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800/80 min-h-[52px] gap-2">
+                  <h3 className="text-xs sm:text-sm md:text-base font-extrabold text-white flex items-center gap-2 leading-snug">
+                    <PackageCheck className="w-5 h-5 text-purple-400 shrink-0" />
+                    <span>Top 10 Skincare Homecare <span className="text-slate-400 font-medium text-xs sm:text-sm">(Rincian Transaksi)</span></span>
+                  </h3>
+                  <span className="text-xs bg-purple-500/20 text-purple-300 px-2.5 py-1 rounded-full border border-purple-500/30 font-bold shrink-0">Skincare</span>
+                </div>
+                <div className="space-y-3">
+                  {topProducts.length > 0 ? (
+                    topProducts.map((p, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/80 hover:border-emerald-500/40 transition">
+                        <div className="flex items-center gap-3">
+                          <span className="w-7 h-7 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-extrabold flex items-center justify-center border border-emerald-500/30 shrink-0">
+                            {idx + 1}
+                          </span>
+                          <div>
+                            <p className="font-bold text-sm text-slate-100 tracking-wide">{p.name}</p>
+                            <p className="text-xs text-slate-400">{formatNumber(p.qty)} unit terjual</p>
+                          </div>
+                        </div>
+                        <span className="font-extrabold text-emerald-400 text-sm shrink-0 ml-2">{formatIDR(p.revenue)}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-8 text-center text-slate-500">
+                      Tidak ada data produk yang sesuai dengan filter.
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -1161,6 +1702,114 @@ export default function App() {
         {/* Tab 5: Doctor Performance */}
         {activeTab === 'doctors' && (
           <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Doctor Chart 1: Kontribusi Revenue Dokter Per Cabang */}
+              <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2 pb-3 border-b border-slate-800/80 min-h-[52px] gap-2">
+                    <h3 className="text-xs sm:text-sm md:text-base font-extrabold text-white flex items-center gap-2 leading-snug">
+                      <Stethoscope className="w-5 h-5 text-indigo-400 shrink-0" />
+                      <span>Kontribusi Revenue Dokter Per Cabang</span>
+                    </h3>
+                    <span className="text-xs bg-indigo-500/20 text-indigo-300 px-2.5 py-1 rounded-full border border-indigo-500/30 font-bold shrink-0">Per Cabang</span>
+                  </div>
+                  <p className="text-xs text-slate-400 mb-6 truncate">Total omset dokter di masing-masing cabang utama (DESC)</p>
+                </div>
+                
+                <div className="h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={doctorBranchSummary} margin={{ top: 25, right: 20, left: 15, bottom: 10 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                      <XAxis 
+                        dataKey="branch" 
+                        stroke="#ffffff" 
+                        strokeWidth={2}
+                        tick={{ fill: '#ffffff', fontSize: 12, fontWeight: 'bold' }} 
+                      />
+                      <YAxis 
+                        stroke="#ffffff" 
+                        strokeWidth={2}
+                        tick={{ fill: '#ffffff', fontSize: 11, fontWeight: 'bold' }} 
+                        tickFormatter={(val) => val === 0 ? 'Rp 0' : `Rp ${(val / 1e9).toFixed(1)} M`} 
+                        width={80} 
+                      />
+                      <Tooltip 
+                        formatter={(val) => [`Rp ${val.toLocaleString('id-ID')}`, 'Revenue Dokter']}
+                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#ffffff' }}
+                        itemStyle={{ color: '#38bdf8' }}
+                        labelStyle={{ color: '#ffffff', fontWeight: 'bold' }}
+                      />
+                      <Bar dataKey="Revenue" fill="#6366f1" radius={[8, 8, 0, 0]}>
+                        <LabelList 
+                          dataKey="Revenue" 
+                          position="top" 
+                          formatter={(val) => val >= 1e9 ? `Rp ${(val / 1e9).toFixed(2)} M` : `Rp ${(val / 1e6).toFixed(1)} Jt`} 
+                          fill="#a5b4fc" 
+                          fontSize={11} 
+                          fontWeight="bold" 
+                          offset={8}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Doctor Chart 2: Top 10 Dokter Berdasarkan Revenue */}
+              <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2 pb-3 border-b border-slate-800/80 min-h-[52px] gap-2">
+                    <h3 className="text-xs sm:text-sm md:text-base font-extrabold text-white flex items-center gap-2 leading-snug">
+                      <Award className="w-5 h-5 text-emerald-400 shrink-0" />
+                      <span>Top 10 Dokter Berdasarkan Revenue</span>
+                    </h3>
+                    <span className="text-xs bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-500/30 font-bold shrink-0">Top Dokter</span>
+                  </div>
+                  <p className="text-xs text-slate-400 mb-6 truncate">Peringkat 10 dokter dengan pencapaian revenue tertinggi (DESC)</p>
+                </div>
+                
+                <div className="h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={top10DoctorsData} layout="vertical" margin={{ top: 10, right: 90, left: 40, bottom: 10 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                      <XAxis 
+                        type="number" 
+                        stroke="#ffffff" 
+                        strokeWidth={2}
+                        tick={{ fill: '#ffffff', fontSize: 11, fontWeight: 'bold' }} 
+                        tickFormatter={(val) => val === 0 ? 'Rp 0' : `Rp ${(val / 1e9).toFixed(1)} M`} 
+                      />
+                      <YAxis 
+                        dataKey="alias" 
+                        type="category" 
+                        stroke="#ffffff" 
+                        strokeWidth={2}
+                        width={95} 
+                        tick={{ fill: '#ffffff', fontSize: 11, fontWeight: 'bold' }} 
+                      />
+                      <Tooltip 
+                        formatter={(val) => [`Rp ${val.toLocaleString('id-ID')}`, 'Revenue Dokter']}
+                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#ffffff' }}
+                        itemStyle={{ color: '#34d399' }}
+                        labelStyle={{ color: '#ffffff', fontWeight: 'bold' }}
+                      />
+                      <Bar dataKey="Revenue" fill="#10b981" radius={[0, 8, 8, 0]}>
+                        <LabelList 
+                          dataKey="Revenue" 
+                          position="right" 
+                          formatter={(val) => val >= 1e9 ? `Rp ${(val / 1e9).toFixed(2)} M` : `Rp ${(val / 1e6).toFixed(1)} Jt`} 
+                          fill="#34d399" 
+                          fontSize={11} 
+                          fontWeight="bold" 
+                          offset={8}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
             <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
@@ -1235,16 +1884,24 @@ export default function App() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/80">
-                    {sortedDocData.map((doc, idx) => (
-                      <tr key={idx} className="hover:bg-slate-800/50 transition">
-                        <td className="p-3.5 font-bold text-indigo-400">#{doc.rank}</td>
-                        <td className="p-3.5 font-bold text-white">{doc.alias}</td>
-                        <td className="p-3.5 text-slate-400">{doc.branch}</td>
-                        <td className="p-3.5 text-right font-medium">{formatNumber(doc.transactions)}</td>
-                        <td className="p-3.5 text-right font-extrabold text-emerald-400">{formatIDR(doc.revenue)}</td>
-                        <td className="p-3.5 text-right text-emerald-400 font-bold">{formatIDR(doc.atv)}</td>
+                    {sortedDocData.length > 0 ? (
+                      sortedDocData.map((doc, idx) => (
+                        <tr key={idx} className="hover:bg-slate-800/50 transition">
+                          <td className="p-3.5 font-bold text-indigo-400">#{doc.rank}</td>
+                          <td className="p-3.5 font-bold text-white">{doc.alias}</td>
+                          <td className="p-3.5 text-slate-400">{doc.branch}</td>
+                          <td className="p-3.5 text-right font-medium">{formatNumber(doc.transactions)}</td>
+                          <td className="p-3.5 text-right font-extrabold text-emerald-400">{formatIDR(doc.revenue)}</td>
+                          <td className="p-3.5 text-right text-emerald-400 font-bold">{formatIDR(doc.atv)}</td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="6" className="p-8 text-center text-slate-500">
+                          Tidak ada data dokter yang sesuai dengan filter.
+                        </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>
