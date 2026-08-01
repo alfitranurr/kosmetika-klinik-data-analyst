@@ -6,7 +6,7 @@ import {
 import { 
   TrendingUp, TrendingDown, DollarSign, Users, Receipt, CreditCard, Filter, Award, 
   CheckCircle2, AlertTriangle, ShieldCheck, FileSpreadsheet, ArrowRight, UserCheck, Stethoscope, PackageCheck, Activity, RefreshCw,
-  ArrowUpDown, ArrowUp, ArrowDown, Check, ChevronDown, Calendar, MapPin
+  ArrowUpDown, ArrowUp, ArrowDown, Check, ChevronDown, Calendar, MapPin, PieChart as PieChartIcon
 } from 'lucide-react';
 
 const SEGMENT_COLORS = {
@@ -146,11 +146,14 @@ export default function App() {
   // Sorting state for Detail Performa Table
   const [sortPerf, setSortPerf] = useState({ key: 'month', direction: 'asc' });
 
-  // Sorting state for Doctor Performance Table
+  // Sorting state for Doctor Table (Bagian B)
   const [sortDoc, setSortDoc] = useState({ key: 'rank', direction: 'asc' });
 
   // Sorting state for Segment Detail Table (Bagian C)
   const [sortSegmentTable, setSortSegmentTable] = useState({ key: 'revenue', direction: 'desc' });
+
+  // Sorting state for Transaction Type Table
+  const [sortTxType, setSortTxType] = useState({ key: 'revenue', direction: 'desc' });
 
   // Filtered performance rows (aware of Month, Branch, and Segment)
   const filteredPerf = useMemo(() => {
@@ -276,11 +279,11 @@ export default function App() {
       if (!matchesFilter(selectedBranches, item.branch_name)) return;
       if (!matchesFilter(selectedSegments, item.segment)) return;
 
-      const key = item.id || item.alias;
+      const key = item.alias || `${item.branch_name}_${item.id}`;
       const existing = map.get(key) || { 
         id: item.id, 
         alias: item.alias, 
-        branch: item.branch, 
+        branch: item.branch_name || item.branch, 
         transactions: 0, 
         revenue: 0 
       };
@@ -422,6 +425,36 @@ export default function App() {
       }));
     }
   }, [selectedMonths, selectedBranches, selectedSegments]);
+
+  const handleSortTxType = (key) => {
+    setSortTxType(prev => {
+      if (prev.key === key) {
+        return { key, direction: prev.direction === 'asc' ? 'desc' : 'asc' };
+      }
+      return { key, direction: key === 'label' ? 'asc' : 'desc' };
+    });
+  };
+
+  const sortedTxTypeTable = useMemo(() => {
+    return [...txTypeData].sort((a, b) => {
+      let aVal = a[sortTxType.key];
+      let bVal = b[sortTxType.key];
+      if (typeof aVal === 'string') {
+        const aNum = parseFloat(aVal);
+        const bNum = parseFloat(bVal);
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+          aVal = aNum;
+          bVal = bNum;
+        }
+      }
+      if (typeof aVal === 'string') {
+        return sortTxType.direction === 'asc' 
+          ? aVal.localeCompare(bVal) 
+          : bVal.localeCompare(aVal);
+      }
+      return sortTxType.direction === 'asc' ? aVal - bVal : bVal - aVal;
+    });
+  }, [txTypeData, sortTxType]);
 
   // Format currency IDR
   const formatIDR = (val) => {
@@ -574,6 +607,32 @@ export default function App() {
       .sort((a, b) => b.TotalRevenue - a.TotalRevenue);
   }, [selectedMonths, selectedBranches, selectedSegments]);
 
+  // Transaction Type Breakdown Per Branch (Aware of Month, Branch & Segment)
+  const branchTxTypeData = useMemo(() => {
+    const branches = ['SURABAYA', 'BANDUNG', 'MALANG', 'SIDOARJO'];
+    const raw = data.tx_types_granular || [];
+
+    return branches.map(b => {
+      const branchItems = raw.filter(i => i.branch_name === b && 
+        matchesFilter(selectedMonths, i.month) && 
+        matchesFilter(selectedSegments, i.segment));
+
+      const prdRev = branchItems.filter(i => i.label === 'Product Only (Obat)').reduce((s, i) => s + i.revenue, 0);
+      const trtRev = branchItems.filter(i => i.label === 'Treatment Only').reduce((s, i) => s + i.revenue, 0);
+      const mxdRev = branchItems.filter(i => i.label === 'Mixed (Campuran)').reduce((s, i) => s + i.revenue, 0);
+      const totalRev = prdRev + trtRev + mxdRev;
+
+      return {
+        branch: b,
+        'Product Only': prdRev,
+        'Treatment Only': trtRev,
+        'Mixed (Campuran)': mxdRev,
+        TotalRevenue: totalRev
+      };
+    }).filter(b => matchesFilter(selectedBranches, b.branch))
+      .sort((a, b) => b.TotalRevenue - a.TotalRevenue);
+  }, [selectedMonths, selectedBranches, selectedSegments]);
+
   // Custom Donut Label
   const renderCustomizedPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
     const RADIAN = Math.PI / 180;
@@ -605,6 +664,48 @@ export default function App() {
           {parts[1] && <tspan x={0} dy="14">{parts[1]}</tspan>}
         </text>
       </g>
+    );
+  };
+
+  // Single-line SVG text label renderer for right-positioned horizontal bar chart labels
+  const renderCustomBarRightLabel = (props) => {
+    const { x, y, width, height, value } = props;
+    if (value === undefined || value === null || value === 0) return null;
+    const text = value >= 1e9 
+      ? `Rp ${(value / 1e9).toFixed(2)} M` 
+      : `Rp ${(value / 1e6).toFixed(1)} Jt`;
+    return (
+      <text 
+        x={x + width + 8} 
+        y={y + height / 2} 
+        fill="#34d399" 
+        fontSize={11} 
+        fontWeight="800" 
+        dominantBaseline="central"
+      >
+        {text}
+      </text>
+    );
+  };
+
+  // Single-line SVG text label renderer for top-positioned vertical bar chart labels (prevents 2-line text wrapping & collisions)
+  const renderCompactBarTopLabel = (color) => (props) => {
+    const { x, y, width, value } = props;
+    if (value === undefined || value === null || value === 0) return null;
+    const text = value >= 1e9 
+      ? `Rp ${(value / 1e9).toFixed(1)}M` 
+      : `Rp ${Math.round(value / 1e6)}Jt`;
+    return (
+      <text 
+        x={x + width / 2} 
+        y={y - 6} 
+        fill={color} 
+        fontSize={10} 
+        fontWeight="800" 
+        textAnchor="middle"
+      >
+        {text}
+      </text>
     );
   };
 
@@ -1479,7 +1580,7 @@ export default function App() {
                   </h3>
                   <span className="text-xs bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-500/30 font-bold shrink-0">Per Cabang</span>
                 </div>
-                <p className="text-xs text-slate-400 mb-6 truncate">Perbandingan total omset layanan Treatment Medis dan Penjualan Skincare Homecare di tiap cabang (DESC)</p>
+                <p className="text-xs text-slate-400 mb-6 truncate">Perbandingan total omset layanan Treatment Medis dan Penjualan Skincare Homecare di tiap cabang</p>
               </div>
               
               <div className="h-80">
@@ -1604,6 +1705,111 @@ export default function App() {
         {/* Tab 4: Transaction Composition (Product Only, Treatment Only, Mixed) */}
         {activeTab === 'tx_types' && (
           <div className="space-y-6">
+            {/* Visual Charts Grid for Transaction Composition */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Donut Chart: Proporsi Revenue Tipe Transaksi (Compact 4-Cols Width) */}
+              <div className="lg:col-span-4 bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2 pb-3 border-b border-slate-800/80 min-h-[52px] gap-2">
+                    <h3 className="text-xs sm:text-sm font-extrabold text-white flex items-center gap-2 leading-snug">
+                      <PieChartIcon className="w-5 h-5 text-amber-400 shrink-0" />
+                      <span>Proporsi Revenue</span>
+                    </h3>
+                    <span className="text-xs bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full border border-amber-500/30 font-bold shrink-0">Komposisi</span>
+                  </div>
+                  <p className="text-xs text-slate-400 mb-6 truncate">Persentase kontribusi omset Skincare, Treatment, & Mixed</p>
+                </div>
+                
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={txTypeData.filter(t => t.label !== 'Other')}
+                        dataKey="revenue"
+                        nameKey="label"
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={55}
+                        outerRadius={90}
+                        paddingAngle={5}
+                        labelLine={false}
+                        label={renderCustomizedPieLabel}
+                      >
+                        {txTypeData.filter(t => t.label !== 'Other').map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} stroke="#0f172a" strokeWidth={2} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        formatter={(val, name, item) => [`${formatIDR(val)} (${item.payload.revPercentage}%)`, name]}
+                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#ffffff' }}
+                        labelStyle={{ color: '#ffffff', fontWeight: 'bold' }}
+                      />
+                      <Legend wrapperStyle={{ paddingTop: '12px', fontSize: '11px' }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Bar Chart: Perbandingan Tipe Transaksi Per Cabang (Wide 8-Cols Width) */}
+              <div className="lg:col-span-8 bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between mb-2 pb-3 border-b border-slate-800/80 min-h-[52px] gap-2">
+                    <h3 className="text-xs sm:text-sm md:text-base font-extrabold text-white flex items-center gap-2 leading-snug">
+                      <Receipt className="w-5 h-5 text-indigo-400 shrink-0" />
+                      <span>Perbandingan Tipe Transaksi Per Cabang</span>
+                    </h3>
+                    <span className="text-xs bg-indigo-500/20 text-indigo-300 px-2.5 py-1 rounded-full border border-indigo-500/30 font-bold shrink-0">Per Cabang</span>
+                  </div>
+                  <p className="text-xs text-slate-400 mb-6 truncate">Breakdown omset Product Only, Treatment Only, & Mixed di tiap cabang</p>
+                </div>
+                
+                <div className="h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={branchTxTypeData} margin={{ top: 28, right: 20, left: 15, bottom: 10 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                      <XAxis 
+                        dataKey="branch" 
+                        stroke="#ffffff" 
+                        strokeWidth={2}
+                        tick={{ fill: '#ffffff', fontSize: 12, fontWeight: 'bold' }} 
+                      />
+                      <YAxis 
+                        stroke="#ffffff" 
+                        strokeWidth={2}
+                        tick={{ fill: '#ffffff', fontSize: 11, fontWeight: 'bold' }} 
+                        tickFormatter={(val) => val === 0 ? 'Rp 0' : `Rp ${(val / 1e9).toFixed(1)} M`} 
+                        width={80} 
+                      />
+                      <Tooltip 
+                        formatter={(val, name) => [`Rp ${val.toLocaleString('id-ID')}`, name]}
+                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#ffffff' }}
+                        labelStyle={{ color: '#ffffff', fontWeight: 'bold' }}
+                      />
+                      <Legend wrapperStyle={{ paddingTop: '12px', fontSize: '12px' }} />
+                      <Bar dataKey="Product Only" fill="#3b82f6" radius={[6, 6, 0, 0]}>
+                        <LabelList 
+                          dataKey="Product Only" 
+                          content={renderCompactBarTopLabel('#93c5fd')}
+                        />
+                      </Bar>
+                      <Bar dataKey="Mixed (Campuran)" fill="#f59e0b" radius={[6, 6, 0, 0]}>
+                        <LabelList 
+                          dataKey="Mixed (Campuran)" 
+                          content={renderCompactBarTopLabel('#fcd34d')}
+                        />
+                      </Bar>
+                      <Bar dataKey="Treatment Only" fill="#10b981" radius={[6, 6, 0, 0]}>
+                        <LabelList 
+                          dataKey="Treatment Only" 
+                          content={renderCompactBarTopLabel('#6ee7b7')}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
             <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl space-y-6">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
                 <div>
@@ -1655,21 +1861,76 @@ export default function App() {
                 ))}
               </div>
 
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-extrabold text-white flex items-center gap-2">
+                  Rincian Transaksi Per Tipe
+                </h3>
+                <span className="text-xs text-indigo-400 font-medium">Klik judul kolom untuk sortir (Sort ▲/▼)</span>
+              </div>
+
               {/* Detailed Comparison Table */}
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm text-slate-300">
                   <thead className="bg-slate-800/80 text-xs font-bold text-slate-400 uppercase tracking-wider">
                     <tr>
-                      <th className="p-3.5">Tipe Transaksi</th>
-                      <th className="p-3.5 text-right">Jumlah Invoice</th>
-                      <th className="p-3.5 text-right">Porsi Invoice (%)</th>
-                      <th className="p-3.5 text-right">Total Revenue</th>
-                      <th className="p-3.5 text-right">Porsi Revenue (%)</th>
-                      <th className="p-3.5 text-right">ATV (Rata-Rata)</th>
+                      <th 
+                        onClick={() => handleSortTxType('label')} 
+                        className="p-3.5 cursor-pointer hover:bg-slate-700/60 transition select-none group"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span>Tipe Transaksi</span>
+                          {renderSortIcon(sortTxType, 'label')}
+                        </div>
+                      </th>
+                      <th 
+                        onClick={() => handleSortTxType('invoices')} 
+                        className="p-3.5 text-right cursor-pointer hover:bg-slate-700/60 transition select-none group"
+                      >
+                        <div className="flex items-center justify-end gap-1.5">
+                          <span>Jumlah Invoice</span>
+                          {renderSortIcon(sortTxType, 'invoices')}
+                        </div>
+                      </th>
+                      <th 
+                        onClick={() => handleSortTxType('invPercentage')} 
+                        className="p-3.5 text-right cursor-pointer hover:bg-slate-700/60 transition select-none group"
+                      >
+                        <div className="flex items-center justify-end gap-1.5">
+                          <span>Porsi Invoice (%)</span>
+                          {renderSortIcon(sortTxType, 'invPercentage')}
+                        </div>
+                      </th>
+                      <th 
+                        onClick={() => handleSortTxType('revenue')} 
+                        className="p-3.5 text-right cursor-pointer hover:bg-slate-700/60 transition select-none group"
+                      >
+                        <div className="flex items-center justify-end gap-1.5">
+                          <span>Total Revenue</span>
+                          {renderSortIcon(sortTxType, 'revenue')}
+                        </div>
+                      </th>
+                      <th 
+                        onClick={() => handleSortTxType('revPercentage')} 
+                        className="p-3.5 text-right cursor-pointer hover:bg-slate-700/60 transition select-none group"
+                      >
+                        <div className="flex items-center justify-end gap-1.5">
+                          <span>Porsi Revenue (%)</span>
+                          {renderSortIcon(sortTxType, 'revPercentage')}
+                        </div>
+                      </th>
+                      <th 
+                        onClick={() => handleSortTxType('atv')} 
+                        className="p-3.5 text-right cursor-pointer hover:bg-slate-700/60 transition select-none group"
+                      >
+                        <div className="flex items-center justify-end gap-1.5">
+                          <span>ATV (Rata-Rata)</span>
+                          {renderSortIcon(sortTxType, 'atv')}
+                        </div>
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60">
-                    {txTypeData.map((item, idx) => (
+                    {sortedTxTypeTable.map((item, idx) => (
                       <tr key={idx} className="hover:bg-slate-800/40 transition">
                         <td className="p-3.5 font-bold text-white flex items-center gap-2">
                           <span className="w-3 h-3 rounded-full" style={{ backgroundColor: item.fill }}></span>
@@ -1704,111 +1965,55 @@ export default function App() {
         {/* Tab 5: Doctor Performance */}
         {activeTab === 'doctors' && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Doctor Chart 1: Kontribusi Revenue Dokter Per Cabang */}
-              <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2 pb-3 border-b border-slate-800/80 min-h-[52px] gap-2">
-                    <h3 className="text-xs sm:text-sm md:text-base font-extrabold text-white flex items-center gap-2 leading-snug">
-                      <Stethoscope className="w-5 h-5 text-indigo-400 shrink-0" />
-                      <span>Kontribusi Revenue Dokter Per Cabang</span>
-                    </h3>
-                    <span className="text-xs bg-indigo-500/20 text-indigo-300 px-2.5 py-1 rounded-full border border-indigo-500/30 font-bold shrink-0">Per Cabang</span>
-                  </div>
-                  <p className="text-xs text-slate-400 mb-6 truncate">Total omset dokter di masing-masing cabang utama (DESC)</p>
+            {/* Visual Chart: Kontribusi Revenue Dokter Per Cabang */}
+            <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2 pb-3 border-b border-slate-800/80 min-h-[52px] gap-2">
+                  <h3 className="text-xs sm:text-sm md:text-base font-extrabold text-white flex items-center gap-2 leading-snug">
+                    <Stethoscope className="w-5 h-5 text-indigo-400 shrink-0" />
+                    <span>Kontribusi Revenue Dokter Per Cabang</span>
+                  </h3>
+                  <span className="text-xs bg-indigo-500/20 text-indigo-300 px-2.5 py-1 rounded-full border border-indigo-500/30 font-bold shrink-0">Per Cabang</span>
                 </div>
-                
-                <div className="h-72">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={doctorBranchSummary} margin={{ top: 25, right: 20, left: 15, bottom: 10 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                      <XAxis 
-                        dataKey="branch" 
-                        stroke="#ffffff" 
-                        strokeWidth={2}
-                        tick={{ fill: '#ffffff', fontSize: 12, fontWeight: 'bold' }} 
-                      />
-                      <YAxis 
-                        stroke="#ffffff" 
-                        strokeWidth={2}
-                        tick={{ fill: '#ffffff', fontSize: 11, fontWeight: 'bold' }} 
-                        tickFormatter={(val) => val === 0 ? 'Rp 0' : `Rp ${(val / 1e9).toFixed(1)} M`} 
-                        width={80} 
-                      />
-                      <Tooltip 
-                        formatter={(val) => [`Rp ${val.toLocaleString('id-ID')}`, 'Revenue Dokter']}
-                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#ffffff' }}
-                        itemStyle={{ color: '#38bdf8' }}
-                        labelStyle={{ color: '#ffffff', fontWeight: 'bold' }}
-                      />
-                      <Bar dataKey="Revenue" fill="#6366f1" radius={[8, 8, 0, 0]}>
-                        <LabelList 
-                          dataKey="Revenue" 
-                          position="top" 
-                          formatter={(val) => val >= 1e9 ? `Rp ${(val / 1e9).toFixed(2)} M` : `Rp ${(val / 1e6).toFixed(1)} Jt`} 
-                          fill="#a5b4fc" 
-                          fontSize={11} 
-                          fontWeight="bold" 
-                          offset={8}
-                        />
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                <p className="text-xs text-slate-400 mb-6 truncate">Total omset pelayanan medis dokter di masing-masing cabang utama</p>
               </div>
-
-              {/* Doctor Chart 2: Top 10 Dokter Berdasarkan Revenue */}
-              <div className="bg-slate-900/90 border border-slate-800/80 rounded-2xl p-6 shadow-2xl backdrop-blur-xl flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-2 pb-3 border-b border-slate-800/80 min-h-[52px] gap-2">
-                    <h3 className="text-xs sm:text-sm md:text-base font-extrabold text-white flex items-center gap-2 leading-snug">
-                      <Award className="w-5 h-5 text-emerald-400 shrink-0" />
-                      <span>Top 10 Dokter Berdasarkan Revenue</span>
-                    </h3>
-                    <span className="text-xs bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-500/30 font-bold shrink-0">Top Dokter</span>
-                  </div>
-                  <p className="text-xs text-slate-400 mb-6 truncate">Peringkat 10 dokter dengan pencapaian revenue tertinggi (DESC)</p>
-                </div>
-                
-                <div className="h-72">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={top10DoctorsData} layout="vertical" margin={{ top: 10, right: 90, left: 40, bottom: 10 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                      <XAxis 
-                        type="number" 
-                        stroke="#ffffff" 
-                        strokeWidth={2}
-                        tick={{ fill: '#ffffff', fontSize: 11, fontWeight: 'bold' }} 
-                        tickFormatter={(val) => val === 0 ? 'Rp 0' : `Rp ${(val / 1e9).toFixed(1)} M`} 
+              
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={doctorBranchSummary} margin={{ top: 28, right: 20, left: 15, bottom: 10 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                    <XAxis 
+                      dataKey="branch" 
+                      stroke="#ffffff" 
+                      strokeWidth={2}
+                      tick={{ fill: '#ffffff', fontSize: 12, fontWeight: 'bold' }} 
+                    />
+                    <YAxis 
+                      stroke="#ffffff" 
+                      strokeWidth={2}
+                      tick={{ fill: '#ffffff', fontSize: 11, fontWeight: 'bold' }} 
+                      tickFormatter={(val) => val === 0 ? 'Rp 0' : `Rp ${(val / 1e9).toFixed(1)} M`} 
+                      width={80} 
+                    />
+                    <Tooltip 
+                      formatter={(val) => [`Rp ${val.toLocaleString('id-ID')}`, 'Revenue Dokter']}
+                      contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#ffffff' }}
+                      itemStyle={{ color: '#38bdf8' }}
+                      labelStyle={{ color: '#ffffff', fontWeight: 'bold' }}
+                    />
+                    <Bar dataKey="Revenue" fill="#6366f1" radius={[8, 8, 0, 0]}>
+                      <LabelList 
+                        dataKey="Revenue" 
+                        position="top" 
+                        formatter={(val) => val >= 1e9 ? `Rp ${(val / 1e9).toFixed(2)} M` : `Rp ${(val / 1e6).toFixed(1)} Jt`} 
+                        fill="#a5b4fc" 
+                        fontSize={11} 
+                        fontWeight="bold" 
+                        offset={8}
                       />
-                      <YAxis 
-                        dataKey="alias" 
-                        type="category" 
-                        stroke="#ffffff" 
-                        strokeWidth={2}
-                        width={95} 
-                        tick={{ fill: '#ffffff', fontSize: 11, fontWeight: 'bold' }} 
-                      />
-                      <Tooltip 
-                        formatter={(val) => [`Rp ${val.toLocaleString('id-ID')}`, 'Revenue Dokter']}
-                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#ffffff' }}
-                        itemStyle={{ color: '#34d399' }}
-                        labelStyle={{ color: '#ffffff', fontWeight: 'bold' }}
-                      />
-                      <Bar dataKey="Revenue" fill="#10b981" radius={[0, 8, 8, 0]}>
-                        <LabelList 
-                          dataKey="Revenue" 
-                          position="right" 
-                          formatter={(val) => val >= 1e9 ? `Rp ${(val / 1e9).toFixed(2)} M` : `Rp ${(val / 1e6).toFixed(1)} Jt`} 
-                          fill="#34d399" 
-                          fontSize={11} 
-                          fontWeight="bold" 
-                          offset={8}
-                        />
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </div>
 
