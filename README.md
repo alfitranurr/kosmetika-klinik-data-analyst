@@ -52,6 +52,33 @@ PT Kosmetika Klinik Indonesia mengoperasikan klinik kecantikan dan perawatan kul
 
 ---
 
+## 🚀 Fitur Terbaru & Enhancements Interactive Web Dashboard
+
+Dashboard bisnis ini telah dikembangkan dengan berbagai fitur modern berstandar enterprise:
+
+1. **Interactive Multi-Select Dropdown Filters:**
+   - Filter **Bulan** (*Oktober 2022*, *November 2022*, *Desember 2022*), **Cabang** (*Surabaya*, *Bandung*, *Malang*, *Sidoarjo*), dan **Segmentasi Customer** (*Repeat*, *Reactivated*, *New*, *Non Member*) kini mendukung **Multiple Selection** dengan indikator badge counter dan toggle *Semua Options*.
+   - Seluruh 8 tab, grafik visual, kartu KPI, dan tabel data merespons filter multi-select secara real-time.
+
+2. **Unified Sticky Glassmorphism Navigation Bar:**
+   - Header judul & toolbar filter disatukan dalam wadah melayang sticky (`sticky top-0 z-50 backdrop-blur-2xl bg-slate-900/95`), membuat filter selalu dapat diakses dari bagian mana pun saat halaman di-scroll ke bawah.
+
+3. **Visual Chart Optimization & Layout Responsive Grid:**
+   - **Tab Komposisi Tipe Transaksi (Tab 4):**
+     - Menggunakan tata letak grid **4:8 (33,3% vs 66,7%)** sehingga Donut Chart tampil ringkas di kiri dan Bar Chart per cabang membentang luas di kanan.
+     - Legend numerik `0, 1, 2` telah diganti menjadi nama kategori resmi (*Product Only*, *Treatment Only*, *Mixed*).
+     - Data label menggunakan renderer SVG single-line (`renderCompactBarTopLabel`) seperti `Rp 3.8M`, `Rp 1.4M`, `Rp 480Jt` untuk mencegah text wrapping 2 baris.
+     - Urutan batang (bar) disusun melandai secara berurutan (*Product Only* → *Mixed* → *Treatment Only*) untuk visualisasi yang sangat intuitif.
+   - **Tab Performa Dokter (Tab 5):**
+     - Memperbaiki bug ID collision dokter antara Malang & Sidoarjo, mengoreksi total revenue dokter Sidoarjo secara akurat menjadi **Rp 3,05 Miliar**.
+     - Menghapus grafik *Top 10 Dokter* yang redundant dengan tabel bawahnya, serta memperluas grafik *Kontribusi Revenue Dokter Per Cabang* menjadi *Full-Width*.
+   - **Pembersihan Teks Sub-Header:** Menghapus seluruh tulisan `(DESC)` pada subtitle grafik agar tampilan lebih bersih dan profesional.
+
+4. **Interactive Column Sorting Across All Tables:**
+   - Seluruh tabel detail (Performa Cabang, Segmentasi, Top Product/Treatment, Komposisi Transaksi, & Dokter) mendukung **sorting kolom interaktif (Ascending / Descending)** dengan tombol header dan indikator visual panah (`▲` / `▼`).
+
+---
+
 ## 🔄 Workflow Pengerjaan
 
 ```mermaid
@@ -80,7 +107,7 @@ Al_Fitra_Nur_Ramadhani/
 ├── 02_patient_migration.sql                    # Script SQL Stored Procedure Migrasi Pasien (Safe, Normalisasi, & Audit Logging)
 ├── 03_migration_validation.sql                 # Script SQL Validasi Rekonsiliasi, Audit Integrity, & Uji Idempotensi Re-run
 ├── dashboard/                                  # Web Dashboard Source Code (React + Tailwind + Recharts)
-├── Dashboard - PT Kosmetika Klinik Indonesia.png# Screenshot Tampilan Web Dashboard Interaktif
+├── dashboard_preview.png                       # Screenshot Tampilan Web Dashboard Interaktif
 ├── executive_summary.pdf                       # Dokumen PDF Executive Summary 2 Halaman
 └── README.md                                   # Dokumentasi Utama & Petunjuk Eksekusi
 ```
@@ -144,7 +171,7 @@ Total Revenue Q4: **Rp 24,33 Miliar** | Total Invoice: **50.856 Invoice** | Pasi
   - Reactivated Customer: Rp 475,47 Jt | 912 invoice.
   - New Customer: Rp 505,48 Jt | 766 invoice | ATV Rp 659.893.
   - Non Member: Rp 433,69 Jt (12,0% revenue) | 2.219 invoice (26,2% volume) | **ATV Terendah (Rp 195.442)**.
-- **Dokter Penanggung Jawab Utama Sidoarjo:** Doctor-0031 (Rp 2,47 M), Doctor-0028 (Rp 1,80 M), Doctor-0030 (Rp 1,49 M), dan Doctor-0029 (Rp 1,27 M).
+- **Dokter Penanggung Jawab Utama Sidoarjo:** Doctor-0031 (Rp 2,47 M), Doctor-0028 (Rp 1,46 M), Doctor-0030 (Rp 2,1 Jt), dan Doctor-0029 (Rp 747,9 Jt) — total revenue dokter Sidoarjo: **Rp 3,05 Miliar**.
 - **Akar Masalah Kunci:** Kurangnya efektivitas *cross-selling* treatment ke skincare oleh tim medis (Mixed package hanya 11,61%), serta tingginya porsi pembeli Non-Member (26,2% invoice) yang belum terkonversi menjadi member terdaftar.
 
 ---
